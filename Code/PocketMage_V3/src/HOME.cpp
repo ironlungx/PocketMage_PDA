@@ -101,6 +101,18 @@ void commandSelect(String command) {
   else if (command == "lex" || command == "lexicon" || command == "dict" || command == "dictionary" || command == "9") {
     LEXICON_INIT();
   }
+    /////////////////////////////
+  else if (command == "calc" || command == "calculator" || command == "math" || command == "10") {
+    currentFont = &FreeMonoBold9pt7b;
+    setTXTFont(currentFont);
+    CurrentAppState = CALC;
+    CurrentKBState  = FUNC;
+    dynamicScroll = 0;
+    forceSlowFullUpdate = true;
+    newState = true;
+    doFull = true;
+    newLineAdded = false;
+  }
   /////////////////////////////
   else if (command == "i farted") {
     oledWord("That smells");

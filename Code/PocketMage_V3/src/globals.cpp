@@ -181,7 +181,7 @@ LexState CurrentLexState = MENU;
         "sinh", "cosh", "tanh", "sec", "csc", "cot", 
         "sech", "csch", "coth", "asec", "acsc", "acot",
         // scientific
-        "ln", "log", "sqrt", "abs", "exp",
+        "ln", "log", "sqrt", "cbrt", "abs", "exp",
         "round", "min", "max", "pow", "rand",
         // fun
         "dice"

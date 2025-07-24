@@ -329,7 +329,7 @@ void updateScrollFromTouch_Calc() {
   uint16_t touched = cap.touched();  // Read touch state
   int newTouch = -1;
   // Find the first active touch point (lowest index first)
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 9; i++) {
     if (touched & (1 << i)) {
       newTouch = i;
       Serial.print("Prev pad: ");

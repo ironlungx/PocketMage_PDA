@@ -486,7 +486,6 @@ std::vector<String> tokenize(const String& expression) {
         // Handle assignment '='
         if (c == ':') {
             // Single '=' for assignment
-            Serial.println("encountered equals sign (:) in tokenizer: " + String(c));
             tokens.push_back(":");  // Keep as & for assignment
             continue;
         }
@@ -510,7 +509,6 @@ std::vector<String> tokenize(const String& expression) {
 
         // Handle numbers
         if (isDigit(c) || (c == '.' && i + 1 < expression.length() && isDigit(expression[i + 1]))) {
-            Serial.println("encountered number in tokenizer: " + String(c));
             currentToken += c;
             while (i + 1 < expression.length() &&
                    (isDigit(expression[i + 1]) || expression[i + 1] == '.')) {
@@ -523,7 +521,6 @@ std::vector<String> tokenize(const String& expression) {
 
         // Handle alphabetic tokens
         if (isAlpha(c)) {
-            Serial.println("encountered alphabetic expression in tokenizer: " + String(c));
             currentToken += c;
             while (i + 1 < expression.length() && isAlphaNumeric(expression[i + 1])) {
                 currentToken += expression[++i];

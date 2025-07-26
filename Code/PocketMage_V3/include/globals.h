@@ -335,6 +335,7 @@ void applicationEinkHandler();
 void processKB();
 
 // <CALC.cpp>
+void CALC_INIT();
 void einkHandler_CALC();
 void processKB_CALC();
 void updateScrollFromTouch_Calc(); // new processSB_Calc?

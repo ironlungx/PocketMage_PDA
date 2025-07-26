@@ -307,15 +307,20 @@ void drawCalc(){
 
 // CLOSE CALC AND UPDATE
 void closeCalc(AppState newAppState){
-  // essential to display next app correctly  
+  // essential to display next app correctly 
   display.setFullWindow();
   display.fillScreen(GxEPD_WHITE);
   u8g2.clearBuffer();
-  CurrentAppState = newAppState;
-  currentLine     = "";
-  newState        = true;
-  CurrentKBState  = NORMAL; 
-  refresh(); 
+  if (newAppState == TXT) {
+    TXT_INIT();
+  }  else {
+    CurrentAppState = HOME;
+    currentLine     = "";
+    newState        = true;
+    CurrentKBState  = NORMAL; 
+    disableTimeout = false;
+    refresh(); 
+  }
 }
 
 // CALC EINK TEXT 

@@ -19,6 +19,22 @@
 // programming mode
 
 ///////////////////////////// MAIN FUNCTIONS
+// CALC INITIALIZETION
+void CALC_INIT() {
+  // open calc
+  CurrentAppState = CALC;
+  CurrentCALCState = CALC0;
+  CurrentKBState = FUNC;
+
+  dynamicScroll = 0;
+  prev_dynamicScroll = -1;
+  lastTouch = -1;
+  newState = true;
+  doFull = true;
+  disableTimeout = false;
+  setTXTFont(&FreeMonoBold9pt7b);
+  currentLine = "";
+}
 // KB HANDLER
 void processKB_CALC() {
   if (OLEDPowerSave) {
@@ -387,7 +403,7 @@ std::deque<String> convertToRPN(String expression) {
     std::deque<String> outputQueue;
     std::stack<String> operatorStack;
     std::vector<String> tokens = tokenize(expression);
-
+    // Serial.println("Converting to RPN: " + expression);
     // Parenthesis validation
     int paren_balance = 0;
     for (char c : expression) {
@@ -479,6 +495,7 @@ std::deque<String> convertToRPN(String expression) {
 std::vector<String> tokenize(const String& expression) {
     std::vector<String> tokens;
     String currentToken = "";
+    // println("Tokenizing expression: " + expression);
 
     for (int i = 0; i < expression.length(); ++i) {
         char c = expression[i];
@@ -486,7 +503,7 @@ std::vector<String> tokenize(const String& expression) {
         // Handle assignment '='
         if (c == ':') {
             // Single '=' for assignment
-            tokens.push_back(":");  // Keep as & for assignment
+            tokens.push_back(":");  // Keep as : for assignment
             continue;
         }
         // messy
@@ -576,7 +593,12 @@ std::vector<String> tokenize(const String& expression) {
 String evaluateRPN(std::deque<String> rpnQueue) {
     std::stack<double> evalStack;
     std::stack<String> varStack;
-    
+    // print queue
+    /*
+    for (auto it = rpnQueue.begin(); it != rpnQueue.end(); it++) {
+      Serial.println("RPN Token: " + *it);
+    }
+    */    
     while (!rpnQueue.empty()) {
         String token = rpnQueue.front();
         rpnQueue.pop_front();
@@ -892,6 +914,23 @@ String evaluateRPN(std::deque<String> rpnQueue) {
               Serial.println("current roll: " + String(roll));
             }
             evalStack.push(roll);
+        }
+        else if (token == "pick"){
+            if (evalStack.size() < 1) return "Error with pick no n arg";
+            int a = static_cast<int>(evalStack.top()); evalStack.pop();
+            int choices = a;
+
+            if (evalStack.size() < choices) return "Error with pick not enough choices";
+            int pickedValue = random(1, choices+1);
+            double valueToPush = 0;
+            for (int i = 0; i < choices; i++){
+              Serial.println("picking from choice: " + String(i));
+              double poppedValue = evalStack.top(); evalStack.pop();
+              if (i == (choices - pickedValue)) {
+                valueToPush = poppedValue;
+              }
+            }
+            evalStack.push(valueToPush);
         }
         else {
             return "Unknown token: " + token;

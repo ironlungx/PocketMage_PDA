@@ -261,7 +261,6 @@ void oledWord(String word, bool allowLarge = false, bool showInfo = true);
 void oledLine(String line, bool doProgressBar = true, String bottomMsg = "");
 void oledScroll();
 void infoBar();
-void oledScrollCalc(); // Calc function
 
 // <einkFunc.cpp>
 void refresh();
@@ -275,9 +274,7 @@ void setTXTFont(const GFXfont *font);
 void setFastFullRefresh(bool setting);
 void drawStatusBar(String input);
 void multiPassRefesh(int passes);
-void printAnswer(String resultOutput);  // Calc
 void drawCalc(); // Calc
-void closeCalc(AppState newAppState); // Calc
 void einkCalcDynamic(bool doFull_, bool noRefresh = false);  // Calc
 
 // <FILEWIZ.cpp>
@@ -353,12 +350,15 @@ void CALC_INIT();
 void einkHandler_CALC();
 void processKB_CALC();
 void updateScrollFromTouch_Calc(); // new processSB_Calc?
+void closeCalc(AppState newAppState); //calc eink function
+void oledScrollCalc(); // calc oled function
 int calculate(const String& cleanedInput,String &resultOutput);
 std::deque<String> convertToRPN(String expression);
 String evaluateRPN(std::deque<String> rpnQueue);
 std::vector<String> tokenize(const String& expression);
 void calcCRInput();
 String formatNumber(double value);
+void printAnswer(String resultOutput);
 bool isNumberToken(const String& token);
 bool isVariableToken(const String& token);
 bool isFunctionToken(const String& token);

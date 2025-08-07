@@ -204,6 +204,7 @@ extern String cleanExpression;
 extern String calculatedResult;
 extern int calcSwitchedStates;
 extern String prevLine;
+extern std::vector<String> prevTokens;
 extern std::map<String, float> variables;
 extern  std::set<String> operatorsCalc;
 extern  std::set<String> functionsCalc;
@@ -346,24 +347,27 @@ void applicationEinkHandler();
 void processKB();
 
 // <CALC.cpp>
-void CALC_INIT();
 void einkHandler_CALC();
 void processKB_CALC();
-void updateScrollFromTouch_Calc(); // new processSB_Calc?
-void closeCalc(AppState newAppState); //calc eink function
+void CALC_INIT();
+void closeCalc(AppState newAppState); // calc eink function
 void oledScrollCalc(); // calc oled function
-int calculate(const String& cleanedInput,String &resultOutput);
-std::deque<String> convertToRPN(String expression);
-String evaluateRPN(std::deque<String> rpnQueue);
-std::vector<String> tokenize(const String& expression);
+void updateScrollFromTouch_Calc(); // new processSB_Calc?
 void calcCRInput();
 String formatNumber(double value);
-void printAnswer(String resultOutput);
+String formatScientific(double value);
+String trimValue(double value);
+void printAnswer(String resultOutput); 
 bool isNumberToken(const String& token);
 bool isVariableToken(const String& token);
 bool isFunctionToken(const String& token);
 bool isOperatorToken(const String& token);
 bool isConstantToken(const String& token);
 double convertTrig(double input, int trigType,bool reverse = false);
+int calculate(const String& cleanedInput,String &resultOutput);
+std::deque<String> convertToRPN(String expression);
+String evaluateRPN(std::deque<String> rpnQueue);
+std::vector<String> tokenize(const String& expression);
+
 
 #endif // GLOBALS_H

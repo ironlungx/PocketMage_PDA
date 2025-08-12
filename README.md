@@ -14,13 +14,58 @@
 
   I will try my best to keep this GitHub up to date with the development of the device.
 
-# [TO-DO]
+# [Hardware]
+- ESP32-S3 WROOM1 with 16mb flash and 8mb RAM. WiFi and Bluetooth supported.
+- 3.1" 320x240px 1-bit SPI Eink panel (GDEQ031T10) with integrated driver
+- 256x32px 1-bit SPI OLED (SSD1326, ER-OLED018-1W) with integrated driver
+- MicroSD card slot with support for up to 2TB
+- TCA8418 I2C Keyboard Matrix IC
+- Piezo Buzzer (Simple Tones)
+- Power Button
+- 1200mAh pouch-style LiPo battery with JST PH (2mm) connector
+- USB Type-C connector
+- PCF8563T I2C RTC (Real Time Clock) module
+- Expansion port with the following breakouts:
+    - +3.3v
+    - GND
+    - I2C SDA
+    - I2C SCL
+    - SPI MOSI
+    - SPI SCK
+    - SPI MISO
+    - GPIO A
+    - GPIO B
+    - GPIO C
+    - GPIO D / UART TX (changeable with solder jumper, default TX)
+    - GPIO E / UART RX (changeable with solder jumper, default RX)
+
+
+# [Software]
+- Text editor app
+- FileWizard file-management app
 - Calendar app
+- USB file transfer app
+- Settings app
+- Tasks app
 - Journal app
+- Dictionary app (Lexicon)
+- Basic commands supported through the home menu:
+    - roll dN (dice roll, N=number of sides)
+    - set time and date
+    - directly open files in Notes or FileWiz by typing the name
+    - etc.
+
+# [Planned Features]
+- Timers and alarms
+- E-book reader
+- WiFi notes/calendar sync (Google Docs/Calendar)
+- LoRa/Meshtastic add-on module
+- Battery expansion add-on module
+- Custom abbreviations
 - Bluetooth keyboard support
 
 # License
-All files are distrubuted under GNU GPLv3 license:
+All files are distributed under GNU GPLv3 license:
 
 EInkPDA - A small note-taking and productivity device using E-Ink and OLED.
 

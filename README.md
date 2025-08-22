@@ -65,23 +65,25 @@
 - Bluetooth keyboard support
 
 # License
-All files are distributed under GNU GPLv3 license:
+All files are distributed under CC BY-NC-SA 4.0 license:
 
 PocketMage PDA - A clamshell note-taking and productivity device using E-Ink and OLED.
 
 Copyright (C) 2025 Ashtf
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Public License (CC BY-NC-SA 4.0)
 
+This library is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+You are free to:
+- Share — copy and redistribute the material in any medium or format
+- Adapt — remix, transform, and build upon the material
 
+Under the following terms:
+- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+- NonCommercial — You may not use the material for commercial purposes.
+- ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+The licensor (author) retains the right to use this work for commercial purposes.
+
+Full license text: https://creativecommons.org/licenses/by-nc-sa/4.0/

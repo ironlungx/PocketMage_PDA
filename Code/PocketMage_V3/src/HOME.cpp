@@ -7,6 +7,16 @@
 //  o888o   o888o  `Y8bood8P'  o8o        o888o o888ooooood8  //
 #include "globals.h"
 
+static String currentLine = "";
+
+void HOME_INIT() {
+  CurrentAppState = HOME;
+  currentLine     = "";
+  CurrentKBState  = NORMAL;
+  CurrentHOMEState = HOME_HOME;
+  newState = true;
+}
+
 void commandSelect(String command) {
   command.toLowerCase();
 
@@ -23,10 +33,7 @@ void commandSelect(String command) {
       lowerFileName.toLowerCase();
       if (command == lowerFileName || (command+".txt") == lowerFileName || ("/"+command+".txt") == lowerFileName) {
         workingFile = filesList[i];
-        CurrentAppState = FILEWIZ;
-        CurrentFileWizState = WIZ1_;
-        CurrentKBState  = FUNC;
-        newState = true;
+        FILEWIZ_INIT();
         return;
       }
     }
@@ -45,11 +52,7 @@ void commandSelect(String command) {
       lowerFileName.toLowerCase();
       if (command == lowerFileName || (command+".txt") == lowerFileName || ("/"+command+".txt") == lowerFileName) {
         editingFile = filesList[i];
-        loadFile();
-        CurrentAppState = TXT;
-        CurrentTXTState = TXT_;
-        CurrentKBState  = NORMAL;
-        newLineAdded = true;
+        TXT_INIT();
         return;
       }
     }
@@ -145,6 +148,51 @@ void commandSelect(String command) {
   } 
   else {
     settingCommandSelect(command);
+  }
+}
+
+void drawHome() {
+  display.setRotation(3);
+  display.fillScreen(GxEPD_WHITE);
+  
+  int16_t x1, y1;
+  uint16_t charWidth, charHeight;
+  uint8_t appsPerRow = 5; // Number of apps per row
+  uint8_t spacingX = 60;  // Horizontal spacing
+  uint8_t spacingY = 60;  // Vertical spacing
+  uint8_t iconSize = 40;  // Icon width and height
+  uint8_t startX = 20;    // Initial X position
+  uint8_t startY = 20;    // Initial Y position
+
+  display.setFont(&FreeSerif9pt7b);
+  for (int i = 0; i < sizeof(appIcons) / sizeof(appIcons[0]); i++) {
+    int row = i / appsPerRow;
+    int col = i % appsPerRow;
+    
+    int xPos = startX + (spacingX * col);
+    int yPos = startY + (spacingY * row);
+
+    display.drawBitmap(xPos, yPos, appIcons[i], iconSize, iconSize, GxEPD_BLACK);
+    display.getTextBounds(appStateNames[i], 0, 0, &x1, &y1, &charWidth, &charHeight);
+    display.setCursor(xPos + (iconSize / 2) - (charWidth / 2), yPos + iconSize + 13);
+    display.print(appStateNames[i]);
+  }
+  display.setFont(&FreeMonoBold9pt7b);
+
+  drawStatusBar("Type a Command:");
+}
+
+void drawThickLine(int x0, int y0, int x1, int y1, int thickness) {
+  float dx = x1 - x0;
+  float dy = y1 - y0;
+  float length = sqrt(dx * dx + dy * dy);
+  float stepX = dx / length;
+  float stepY = dy / length;
+
+  for (float i = 0; i <= length; i += thickness / 2.0) {
+    int cx = round(x0 + i * stepX);
+    int cy = round(y0 + i * stepY);
+    display.fillCircle(cx, cy, thickness / 2, GxEPD_BLACK);
   }
 }
 
@@ -287,35 +335,4 @@ void einkHandler_HOME() {
       }
       break;
   }
-}
-
-void drawHome() {
-  display.setRotation(3);
-  display.fillScreen(GxEPD_WHITE);
-  
-  int16_t x1, y1;
-  uint16_t charWidth, charHeight;
-  uint8_t appsPerRow = 5; // Number of apps per row
-  uint8_t spacingX = 60;  // Horizontal spacing
-  uint8_t spacingY = 60;  // Vertical spacing
-  uint8_t iconSize = 40;  // Icon width and height
-  uint8_t startX = 20;    // Initial X position
-  uint8_t startY = 20;    // Initial Y position
-
-  display.setFont(&FreeSerif9pt7b);
-  for (int i = 0; i < sizeof(appIcons) / sizeof(appIcons[0]); i++) {
-    int row = i / appsPerRow;
-    int col = i % appsPerRow;
-    
-    int xPos = startX + (spacingX * col);
-    int yPos = startY + (spacingY * row);
-
-    display.drawBitmap(xPos, yPos, appIcons[i], iconSize, iconSize, GxEPD_BLACK);
-    display.getTextBounds(appStateNames[i], 0, 0, &x1, &y1, &charWidth, &charHeight);
-    display.setCursor(xPos + (iconSize / 2) - (charWidth / 2), yPos + iconSize + 13);
-    display.print(appStateNames[i]);
-  }
-  display.setFont(&FreeMonoBold9pt7b);
-
-  drawStatusBar("Type a Command:");
 }

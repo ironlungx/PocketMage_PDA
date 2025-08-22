@@ -7,7 +7,24 @@
 //  8""88888P'      o888o     8""88888P'      o888o     o888ooooood8 o8o        o888o  //
 #include "globals.h"
 
+uint8_t fileIndex = 0;
+String excludedFiles[3] = { "/temp.txt", "/settings.txt", "/tasks.txt" };
+
 // High-Level File Operations
+int countVisibleChars(String input) {
+  int count = 0;
+
+  for (size_t i = 0; i < input.length(); i++) {
+    char c = input[i];
+    // Check if the character is a visible character or space
+    if (c >= 32 && c <= 126) { // ASCII range for printable characters and space
+      count++;
+    }
+  }
+
+  return count;
+}
+
 void saveFile() {
   if (noSD) {
     oledWord("SAVE FAILED - No SD!");
@@ -27,14 +44,14 @@ void saveFile() {
     if (editingFile == "" || editingFile == "-") editingFile = "/temp.txt";
     keypad.disableInterrupts();
     if (!editingFile.startsWith("/")) editingFile = "/" + editingFile;
-    oledWord("Saving File: "+ editingFile);
+    //oledWord("Saving File: "+ editingFile);
     writeFile(SD_MMC, (editingFile).c_str(), textToSave.c_str());
-    oledWord("Saved: "+ editingFile);
+    //oledWord("Saved: "+ editingFile);
 
     // Write MetaData
     writeMetadata(editingFile);
     
-    delay(1000);
+    //delay(1000);
     keypad.enableInterrupts();
     if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
     SDActive = false;
@@ -126,8 +143,10 @@ void loadFile(bool showOLED) {
     }
     stringToVector(textToLoad);
     keypad.enableInterrupts();
-    if (showOLED) oledWord("File Loaded");
-    delay(200);
+    if (showOLED) {
+      oledWord("File Loaded");
+      delay(200);
+    }
     if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
     SDActive = false;
   }
@@ -145,10 +164,10 @@ void delFile(String fileName) {
     delay(50);
 
     keypad.disableInterrupts();
-    oledWord("Deleting File: "+ fileName);
+    //oledWord("Deleting File: "+ fileName);
     if (!fileName.startsWith("/")) fileName = "/" + fileName;
     deleteFile(SD_MMC, fileName.c_str());
-    oledWord("Deleted: "+ fileName);
+    //oledWord("Deleted: "+ fileName);
 
     // Delete MetaData
     deleteMetadata(fileName);
@@ -163,7 +182,6 @@ void delFile(String fileName) {
 void deleteMetadata(String path) {
   const char* metaPath = SYS_METADATA_FILE;
   
-
   // Open metadata file for reading
   File metaFile = SD_MMC.open(metaPath, FILE_READ);
   if (!metaFile) {
@@ -211,7 +229,7 @@ void renFile(String oldFile, String newFile) {
     delay(50);
 
     keypad.disableInterrupts();
-    oledWord("Renaming "+ oldFile + " to " + newFile);
+    //oledWord("Renaming "+ oldFile + " to " + newFile);
     if (!oldFile.startsWith("/")) oldFile = "/" + oldFile;
     if (!newFile.startsWith("/")) newFile = "/" + newFile;
     renameFile(SD_MMC, oldFile.c_str(), newFile.c_str());
@@ -495,6 +513,48 @@ char updateKeypress() {
   return 0;
 }
 
+void updateScrollFromTouch() {
+  uint16_t touched = cap.touched();  // Read touch state
+  int newTouch = -1;
+
+  // Find the first active touch point (lowest index first)
+  for (int i = 0; i < 9; i++) {
+    if (touched & (1 << i)) {
+      newTouch = i;
+      Serial.print("Prev pad: ");
+      Serial.print(lastTouch);
+      Serial.print("   Touched pad: ");
+      Serial.println(newTouch);
+      break;
+    }
+  }
+
+  unsigned long currentTime = millis();
+
+  if (newTouch != -1) {  // If a touch is detected
+    Serial.println("Touch Detected");
+    if (lastTouch != -1) {  // Compare with previous touch
+      int touchDelta = abs(newTouch - lastTouch);
+      if (touchDelta <= 2) {  // Ignore large jumps (adjust threshold if needed)
+        int maxScroll = max(0, (int)allLines.size() - maxLines);  // Ensure a valid scroll range
+        if (newTouch > lastTouch) {
+          dynamicScroll = min((int)(dynamicScroll + 1), maxScroll);
+        } else if (newTouch < lastTouch) {
+          dynamicScroll = max((int)(dynamicScroll - 1), 0);
+        }
+      }
+    }
+    lastTouch = newTouch;  // Always update lastTouch
+    lastTouchTime = currentTime;  // Reset timeout timer
+  } 
+  else if (lastTouch != -1 && (currentTime - lastTouchTime > TOUCH_TIMEOUT_MS)) {
+    // RESET LASTTOUCH AFTER TIMEOUT
+    lastTouch = -1;
+    // ONLY UPDATE IF SCROLL HAS CHANGED
+    if (prev_dynamicScroll != dynamicScroll) newLineAdded = true;
+  }
+}
+
 void setTimeFromString(String timeStr) {
     if (timeStr.length() != 5 || timeStr[2] != ':') {
         Serial.println("Invalid format! Use HH:MM");
@@ -645,27 +705,21 @@ void checkTimeout() {
         }
 
         //Save current work:
-        //Only save if alltext has significant content
-        if (allText.length() > 10) {
-          //No current file, save in temp.txt
-          saveFile();
-        }
+        saveFile();
+
 
         switch (CurrentAppState) {
           case TXT:
             if (SLEEPMODE == "TEXT" && editingFile != "") {
-              prevAllText = allText;
               einkRefresh = FULL_REFRESH_AFTER + 1;
               display.setFullWindow();
-              if (TXT_APP_STYLE == 0) einkTextPartial(allText, true);
-              else if (TXT_APP_STYLE == 1) einkTextDynamic(true, true);
+              einkTextDynamic(true, true);
                     
               display.setFont(&FreeMonoBold9pt7b);
               
               display.fillRect(0,display.height()-26,display.width(),26,GxEPD_WHITE);
               display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
               display.setCursor(4, display.height()-6);
-              display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(countLines(allText)));
               display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
               statusBar(editingFile, true);
               
@@ -700,11 +754,9 @@ void checkTimeout() {
     PWR_BTN_event = false;
 
     // Save current work:
-    // Only save if alltext has significant content
-    if (allText.length() > 10) {
-      oledWord("Saving Work");
-      saveFile();
-    }
+    oledWord("Saving Work");
+    saveFile();
+
     
     if (digitalRead(CHRG_SENS) == HIGH) {
       // Save last state
@@ -735,17 +787,14 @@ void checkTimeout() {
       switch (CurrentAppState) {
         case TXT:
           if (SLEEPMODE == "TEXT" && editingFile != "") {
-            prevAllText = allText;
             einkRefresh = FULL_REFRESH_AFTER + 1;
             display.setFullWindow();
-            if (TXT_APP_STYLE == 0) einkTextPartial(allText, true);
-            else if (TXT_APP_STYLE == 1) einkTextDynamic(true, true);    
+            einkTextDynamic(true, true);    
             display.setFont(&FreeMonoBold9pt7b);
             
             display.fillRect(0,display.height()-26,display.width(),26,GxEPD_WHITE);
             display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
             display.setCursor(4, display.height()-6);
-            display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(countLines(allText)));
             display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
             statusBar(editingFile, true);
             
@@ -877,9 +926,7 @@ void loadState(bool changeState) {
         newState = true;
         break;
       case TASKS:
-        CurrentTasksState = TASKS0;
-        forceSlowFullUpdate = true;
-        newState = true;
+        TASKS_INIT();
         break;
       case USB_APP:
         CurrentAppState = HOME;

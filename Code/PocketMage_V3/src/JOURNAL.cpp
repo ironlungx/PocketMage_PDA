@@ -1,7 +1,12 @@
 #include "globals.h"
 
+enum JournalState {J_MENU, J_TXT};
+JournalState CurrentJournalState = J_MENU;
+
 String currentJournal = "";
 String bufferEditingFile = editingFile;
+static String currentLine = "";
+static volatile bool doFull = false;
 
 void JOURNAL_INIT() {
   CurrentAppState = JOURNAL;
@@ -374,12 +379,6 @@ void processKB_JOURNAL() {
         loadJournal();
         CurrentKBState = NORMAL;
         newLineAdded = true;
-      }
-      // Font Switcher 
-      else if (inchar == 14) {                                  
-        CurrentTXTState = FONT;
-        CurrentKBState = FUNC;
-        newState = true;
       }
       else {
         currentLine += inchar;

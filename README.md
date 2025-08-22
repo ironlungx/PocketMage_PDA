@@ -71,19 +71,19 @@ PocketMage PDA - A clamshell note-taking and productivity device using E-Ink and
 
 Copyright (C) 2025 Ashtf
 
-Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Public License (CC BY-NC-SA 4.0)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC--BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 
-This library is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**.  
 
-You are free to:
-- Share — copy and redistribute the material in any medium or format
-- Adapt — remix, transform, and build upon the material
+You are free to:  
+- **Share** — copy and redistribute the material in any medium or format  
+- **Adapt** — remix, transform, and build upon the material  
 
-Under the following terms:
-- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
-- NonCommercial — You may not use the material for commercial purposes.
-- ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+Under the following terms:  
+- **Attribution** — You must give appropriate credit.  
+- **NonCommercial** — You may not use this material for commercial purposes.  
+- **ShareAlike** — If you remix, transform, or build upon it, you must distribute your contributions under the same license.  
 
-The licensor (author) retains the right to use this work for commercial purposes.
+The original author retains the right to use this work commercially.  
 
-Full license text: https://creativecommons.org/licenses/by-nc-sa/4.0/
+Full license details: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  

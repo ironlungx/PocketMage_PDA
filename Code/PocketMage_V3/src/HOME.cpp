@@ -117,10 +117,7 @@ void commandSelect(String command) {
   else if (command == "journ" || command == "journal" || command == "daily" || command == "8") {
     JOURNAL_INIT();
   }
-  /////////////////////////////
-  else if (command == "calc" || command == "calculator" || command == "math" || command == "10") {
-    CALC_INIT();
-  }
+
   /////////////////////////////
   else if (command == "i farted") {
     oledWord("That smells");

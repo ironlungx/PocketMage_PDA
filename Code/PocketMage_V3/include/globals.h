@@ -140,17 +140,10 @@ extern KBState CurrentKBState;           // Current keyboard state
 extern uint8_t partialCounter;           // E-Ink partial refresh counter
 extern volatile bool forceSlowFullUpdate;// Force slow full update
 
-<<<<<<< HEAD
-enum AppState { HOME, TXT, FILEWIZ, USB_APP, BT, SETTINGS, TASKS, CALENDAR, JOURNAL, LEXICON, CALC };
-extern const String appStateNames[];
-extern const unsigned char *appIcons[10];
-extern AppState CurrentAppState;
-=======
 enum AppState { HOME, TXT, FILEWIZ, USB_APP, BT, SETTINGS, TASKS, CALENDAR, JOURNAL, LEXICON };
 extern const String appStateNames[];     // App state names
 extern const unsigned char *appIcons[9]; // App icons
 extern AppState CurrentAppState;         // Current app state
->>>>>>> upstream/main
 
 // ===================== TXT APP =====================
 extern volatile bool newLineAdded;           // New line added in TXT
@@ -167,72 +160,7 @@ extern std::vector<std::vector<String>> tasks; // Task list
 enum HOMEState { HOME_HOME, NOWLATER };       // Home app states
 extern HOMEState CurrentHOMEState;            // Current home state
 
-<<<<<<< HEAD
-// <TASKS.cpp>
-extern std::vector<std::vector<String>> tasks;
-extern uint8_t selectedTask;
-enum TasksState { TASKS0, TASKS0_NEWTASK, TASKS1, TASKS1_EDITTASK };
-extern TasksState CurrentTasksState;
-extern uint8_t newTaskState;
-extern uint8_t editTaskState;
-extern String newTaskName;
-extern String newTaskDueDate;
-
-// <HOME.cpp>
-enum HOMEState { HOME_HOME, NOWLATER };
-extern HOMEState CurrentHOMEState;
-
-// <FILEWIZ.cpp>
-enum FileWizState { WIZ0_, WIZ1_, WIZ1_YN, WIZ2_R, WIZ2_C, WIZ3_ };
-extern FileWizState CurrentFileWizState;
-extern String workingFile;
-
-// <settings.cpp>
-enum SettingsState { settings0, settings1 };
-extern SettingsState CurrentSettingsState;
-
-// <CALENDAR.cpp>
-enum CalendarState { WEEK, MONTH, NEW_EVENT, VIEW_EVENT, SUN, MON, TUE, WED, THU, FRI, SAT };
-extern CalendarState CurrentCalendarState;
-
-// <LEXICON.cpp>
-enum LexState {MENU, DEF};
-extern LexState CurrentLexState;
-
-// <CALC.cpp>
-enum CALCState { CALC0, CALC1, CALC2, CALC3, CALC4, CALCFONT };
-// max refreshes before a full refresh is forced (change to 5 for eink longevity)
-#define REFRESH_MAX_CALC 10
-#define SCROLL_MAX 8
-#define SCROLL_MED 4
-#define SCROLL_SML 2
-extern CALCState CurrentCALCState;
-extern int refresh_count;
-extern std::vector<String> allLinesCalc;
-extern String cleanExpression;
-extern String calculatedResult;
-extern int calcSwitchedStates;
-extern String prevLine;
-extern std::vector<String> prevTokens;
-extern std::map<String, float> variables;
-extern  std::set<String> operatorsCalc;
-extern  std::set<String> functionsCalc;
-extern std::set<String> constantsCalc;
-extern std::map<String, int> precedenceCalc;
-extern std::vector<String> helpText;
-extern char bufferString[20];
-extern int trigType;
-
-// <JOURNAL.cpp>
-enum JournalState {J_MENU, J_TXT};
-extern JournalState CurrentJournalState;
-
-
-
-// FUNCTION PROTOTYPES
-=======
 // ===================== FUNCTION PROTOTYPES =====================
->>>>>>> upstream/main
 // <sysFunc.cpp>
 // SYSTEM
 void checkTimeout();

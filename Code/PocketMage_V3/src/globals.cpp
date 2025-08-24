@@ -9,6 +9,7 @@ volatile bool GxEPD2_310_GDEQ031T10::useFastFullUpdate = true;
 // 256x32 SPI OLED display object
 U8G2_SSD1326_ER_256X32_F_4W_HW_SPI u8g2(U8G2_R2, OLED_CS, OLED_DC, OLED_RST);
 
+
 // ===================== INPUT DEVICES =====================
 // Matrix keypad controller
 Adafruit_TCA8418 keypad;

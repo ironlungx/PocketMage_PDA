@@ -120,7 +120,7 @@ void setup() {
   wireOled();
 
   // SHOW "PocketMage" while DEVICE BOOTS
-  getOled().oledWord("   PocketMage   ", true, false);
+  OLED().oledWord("   PocketMage   ", true, false);
 
   // STARTUP JINGLE
   playJingle("startup");
@@ -132,7 +132,7 @@ void setup() {
   // KEYBOARD SETUP
   if (!keypad.begin(TCA8418_DEFAULT_ADDR, &Wire)) {
     Serial.println("Error Initializing the Keyboard");
-    getOled().oledWord("Keyboard INIT Failed");
+    OLED().oledWord("Keyboard INIT Failed");
     delay(1000);
     while (1);
   }
@@ -145,15 +145,15 @@ void setup() {
   SD_MMC.setPins(SD_CLK, SD_CMD, SD_D0);
   if (!SD_MMC.begin("/sdcard", true) || SD_MMC.cardType() == CARD_NONE) {
     Serial.println("MOUNT FAILED");
-    getOled().oledWord("SD Card Not Detected!");
+    OLED().oledWord("SD Card Not Detected!");
     delay(2000);
     if (ALLOW_NO_MICROSD) {
-      getOled().oledWord("All Work Will Be Lost!");
+      OLED().oledWord("All Work Will Be Lost!");
       delay(5000);
       noSD = true;
     }
     else {
-      getOled().oledWord("Insert SD Card and Reboot!");
+      OLED().oledWord("Insert SD Card and Reboot!");
       delay(5000);
       // Put OLED to sleep
       u8g2.setPowerSave(1);
@@ -221,7 +221,7 @@ void setup() {
   // MPR121 / SLIDER
   if (!cap.begin(MPR121_ADDR)) {
     Serial.println("TouchPad Failed");
-    getOled().oledWord("TouchPad Failed");
+    OLED().oledWord("TouchPad Failed");
     delay(1000);
   }
 

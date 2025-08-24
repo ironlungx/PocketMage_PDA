@@ -39,15 +39,15 @@ void USBAppShutdown() {
 
   if (!SD_MMC.begin("/sdcard", true) || SD_MMC.cardType() == CARD_NONE) {
     Serial.println("MOUNT FAILED");
-    getOled().oledWord("SD Card Not Detected!");
+    OLED().oledWord("SD Card Not Detected!");
     delay(2000);
 
     if (ALLOW_NO_MICROSD) {
-      getOled().oledWord("All Work Will Be Lost!");
+      OLED().oledWord("All Work Will Be Lost!");
       delay(5000);
       noSD = true;
     } else {
-      getOled().oledWord("Insert SD Card and Reboot!");
+      OLED().oledWord("Insert SD Card and Reboot!");
       delay(5000);
       u8g2.setPowerSave(1);
       playJingle("shutdown");
@@ -109,7 +109,7 @@ static void usbEventCallback(void* arg, esp_event_base_t event_base, int32_t eve
 
 void USB_INIT() {
   // OPEN USB FILE TRANSFER
-  getOled().oledWord("Initializing USB");
+  OLED().oledWord("Initializing USB");
   setCpuFrequencyMhz(240);
   delay(50);
 
@@ -188,7 +188,7 @@ void processKB_USB() {
   //Make sure oled only updates at 10FPS
   if (currentMillis - OLEDFPSMillis >= (1000/10 /*OLED_MAX_FPS*/)) {
     OLEDFPSMillis = currentMillis;
-    getOled().oledLine(currentLine, false);
+    OLED().oledLine(currentLine, false);
   }
   
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
@@ -214,11 +214,11 @@ void einkHandler_USB() {
     display.fillScreen(GxEPD_WHITE);
 
     // Display Status Bar
-    getEink().drawStatusBar("Connect to a Computer:");
+    EINK().drawStatusBar("Connect to a Computer:");
 
     // Display Background
     display.drawBitmap(0, 0, _usb, 320, 218, GxEPD_BLACK);
 
-    getEink().multiPassRefesh(2);
+    EINK().multiPassRefesh(2);
   }
 }

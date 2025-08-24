@@ -20,4 +20,4 @@ void wireEink()
 }
 
 // Access for other apps
-PocketmageEink& getEink() { return eink; }
+PocketmageEink& EINK() { return eink; }

@@ -54,10 +54,10 @@
 */
 
 // ===================== DISPLAY =====================
-// E-Ink display object
-extern GxEPD2_BW<GxEPD2_310_GDEQ031T10, GxEPD2_310_GDEQ031T10::HEIGHT> display; // Main e-ink display
-// OLED display object
-extern U8G2_SSD1326_ER_256X32_F_4W_HW_SPI u8g2; // 256x32 SPI OLED
+// E-ink display
+extern GxEPD2_BW<GxEPD2_310_GDEQ031T10, GxEPD2_310_GDEQ031T10::HEIGHT> display;
+// OLED 
+extern U8G2_SSD1326_ER_256X32_F_4W_HW_SPI u8g2;
 
 // ===================== INPUT DEVICES =====================
 // Keypad controller

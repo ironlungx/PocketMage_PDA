@@ -5,7 +5,7 @@
 //  888      888  888          888    "     888      888  //
 //  `88b    d88'  888       o  888       o  888     d88'  //
 //   `Y8bood8P'  o888ooooood8 o888ooooood8 o888bood8P'    //
-#include "pocketmage_oled.h"
+#include <pocketmage_oled.h>
 
 // COMPUTE STRING WIDTH IN EINK PIXELS
 uint16_t PocketmageOled::strWidth(const String& s) const {

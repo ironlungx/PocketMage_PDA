@@ -5,7 +5,7 @@
 //   888    "             888   8     `88b.8   888`88b.     //
 //   888       o          888   8       `888   888  `88b.   //
 //  o888ooooood8         o888o o8o        `8  o888o  o888o  //
-#include "pocketmage_eink.h"
+#include <pocketmage_eink.h>
 
 PocketmageEink::PocketmageEink(DisplayT& d) : display_(d) {}
 

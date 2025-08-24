@@ -1,5 +1,5 @@
 #pragma once
-#include "globals.h"
+#include <globals.h>
 
 // Accessors (wire*/get*)
 #include <pocketmage_setup_eink.h>

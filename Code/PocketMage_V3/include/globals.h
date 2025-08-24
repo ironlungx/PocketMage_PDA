@@ -17,13 +17,13 @@
 #include <SD_MMC.h>
 #include <Preferences.h>
 #include <stdint.h>
-#include "Adafruit_MPR121.h"
-#include "esp_cpu.h"
-#include "RTClib.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "assets.h"
-#include "config.h"
+#include <Adafruit_MPR121.h>
+#include <esp_cpu.h>
+#include <RTClib.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <assets.h>
+#include <config.h>
 
 /* // migrated to pocketmage_eink.h
 // FONTS

@@ -129,61 +129,6 @@ void setTXTFont(const GFXfont* font) {
   maxLines = getMaxLines();
 }
 
-void drawThickLine(int x0, int y0, int x1, int y1, int thickness) {
-  float dx = x1 - x0;
-  float dy = y1 - y0;
-  float length = sqrt(dx * dx + dy * dy);
-  float stepX = dx / length;
-  float stepY = dy / length;
-
-  for (float i = 0; i <= length; i += thickness / 2.0) {
-    int cx = round(x0 + i * stepX);
-    int cy = round(y0 + i * stepY);
-    display.fillCircle(cx, cy, thickness / 2, GxEPD_BLACK);
-  }
-}
-
-void einkTextPartial(String text, bool noRefresh) {
-  bool doFullRefresh = false;
-
-  einkRefresh++;
-  if (einkRefresh > FULL_REFRESH_AFTER) {
-    doFullRefresh = true;
-    einkRefresh = 0;
-    display.setFullWindow();
-    display.fillScreen(GxEPD_WHITE);
-  }
-
-  display.setFont(&FreeMonoBold9pt7b);
-
-  if (splitIntoLines(text.c_str(), scroll)) doFullRefresh = true;
-
-  for (int i = 0; i < 13; i++) {
-    if (outLines[i] != "") {  // Print only non-empty lines
-      if (doFullRefresh) {
-        display.fillRect(0, 16 * i, display.width(), 16, GxEPD_WHITE);
-        display.setCursor(0, 10 + (16 * i));
-        display.print(outLines[i]);
-      } else if (outLines[i] != lines_prev[i]) {  //If the line has changed
-        display.setPartialWindow(0, 16 * i, display.width(), 16);
-        display.fillRect(0, 16 * i, display.width(), 16, GxEPD_WHITE);
-        display.setCursor(0, 10 + (16 * i));
-        display.print(outLines[i]);
-        if (!noRefresh) refresh();
-      }
-    }
-  }
-
-  if (doFullRefresh && !noRefresh) {
-    display.nextPage();
-    display.hibernate();
-  }
-
-  for (int i = 0; i < 13; i++) {
-    lines_prev[i] = outLines[i];  // Copy each line
-  }
-}
-
 void einkTextDynamic(bool doFull_, bool noRefresh) {
   // SET FONT
   setTXTFont(currentFont);

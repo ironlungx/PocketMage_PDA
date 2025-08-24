@@ -1,5 +1,10 @@
 #include "globals.h"
 
+enum LexState {MENU, DEF};
+LexState CurrentLexState = MENU;
+
+static String currentLine = "";
+
 // Vector to hold the definitions
 std::vector<std::pair<String, String>> defList;
 int definitionIndex = 0;

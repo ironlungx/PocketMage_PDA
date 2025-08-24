@@ -5,7 +5,18 @@
 //      888        .88ooo8888.        `"Y88b  888`88b.         `"Y88b //
 //      888       .8'     `888.  oo     .d8P  888  `88b.  oo     .d8P //
 //     o888o     o88o     o8888o 8""88888P'  o888o  o888o 8""88888P'  //  
-#include "globals.h"                                                 
+#include "globals.h"   
+
+enum TasksState { TASKS0, TASKS0_NEWTASK, TASKS1, TASKS1_EDITTASK };
+TasksState CurrentTasksState = TASKS0;
+
+static String currentWord = "";
+static String currentLine = "";
+uint8_t newTaskState = 0;
+uint8_t editTaskState = 0;
+String newTaskName = "";
+String newTaskDueDate = "";
+uint8_t selectedTask = 0;
 
 void TASKS_INIT() {
   CurrentAppState = TASKS;
@@ -18,6 +29,26 @@ void sortTasksByDueDate(std::vector<std::vector<String>> &tasks) {
   std::sort(tasks.begin(), tasks.end(), [](const std::vector<String> &a, const std::vector<String> &b) {
     return a[1] < b[1]; // Compare dueDate strings
   });
+}
+
+void updateTasksFile() {
+  SDActive = true;
+  setCpuFrequencyMhz(240);
+  delay(50);
+  // Clear the existing tasks file first
+  delFile("/sys/tasks.txt");
+
+  // Iterate through the tasks vector and append each task to the file
+  for (size_t i = 0; i < tasks.size(); i++) {
+    // Create a string from the task's attributes with "|" delimiter
+    String taskInfo = tasks[i][0] + "|" + tasks[i][1] + "|" + tasks[i][2] + "|" + tasks[i][3];
+    
+    // Append the task info to the file
+    appendToFile("/sys/tasks.txt", taskInfo);
+  }
+
+  if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
+  SDActive = false;
 }
 
 void addTask(String taskName, String dueDate, String priority, String completed) {
@@ -71,25 +102,6 @@ void updateTaskArray() {
   SDActive = false;
 }
 
-void updateTasksFile() {
-  SDActive = true;
-  setCpuFrequencyMhz(240);
-  delay(50);
-  // Clear the existing tasks file first
-  delFile("/sys/tasks.txt");
-
-  // Iterate through the tasks vector and append each task to the file
-  for (size_t i = 0; i < tasks.size(); i++) {
-    // Create a string from the task's attributes with "|" delimiter
-    String taskInfo = tasks[i][0] + "|" + tasks[i][1] + "|" + tasks[i][2] + "|" + tasks[i][3];
-    
-    // Append the task info to the file
-    appendToFile("/sys/tasks.txt", taskInfo);
-  }
-
-  if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
-  SDActive = false;
-}
 
 void deleteTask(int index) {
   if (index >= 0 && index < tasks.size()) {
@@ -129,11 +141,7 @@ void processKB_TASKS() {
         if (inchar == 0);
         //BKSP Recieved
         else if (inchar == 127 || inchar == 8 || inchar == 12) {
-          CurrentAppState = HOME;
-          currentLine     = "";
-          CurrentKBState  = NORMAL;
-          CurrentHOMEState = HOME_HOME;
-          newState = true;
+          HOME_INIT();
           break;
         }
         // NEW TASK

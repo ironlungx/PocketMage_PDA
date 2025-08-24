@@ -1,143 +1,131 @@
 #include "globals.h"
 #include "sdmmc_cmd.h"
 
-//   .oooooo..o oooooooooooo ooooooooooooo ooooo     ooo ooooooooo.    //
-//  d8P'    `Y8 `888'     `8 8'   888   `8 `888'     `8' `888   `Y88.  //
-//  Y88bo.       888              888       888       8   888   .d88'  //
-//   `"Y8888o.   888oooo8         888       888       8   888ooo88P'   //
-//       `"Y88b  888    "         888       888       8   888          //
-//  oo     .d8P  888       o      888       `88.    .8'   888          //
-//  8""88888P'  o888ooooood8     o888o        `YbodP'    o888o         //
-
-// Display setup
+// ===================== DISPLAY =====================
+// Main e-ink display object
 GxEPD2_BW<GxEPD2_310_GDEQ031T10, GxEPD2_310_GDEQ031T10::HEIGHT> display(GxEPD2_310_GDEQ031T10(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
+// Fast full update flag for e-ink
 volatile bool GxEPD2_310_GDEQ031T10::useFastFullUpdate = true;
-U8G2_SSD1326_ER_256X32_F_4W_HW_SPI u8g2(U8G2_R2, OLED_CS, OLED_DC, OLED_RST); //256x32
+// 256x32 SPI OLED display object
+U8G2_SSD1326_ER_256X32_F_4W_HW_SPI u8g2(U8G2_R2, OLED_CS, OLED_DC, OLED_RST);
 
-// Keypad setup
+// ===================== INPUT DEVICES =====================
+// Matrix keypad controller
 Adafruit_TCA8418 keypad;
-
-// Buzzer
-Buzzer buzzer(17);
-
+// Key layouts
 char keysArray[4][10] = {
-  { 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p' },
-  { 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',   8 },  //8:BKSP
-  {   9, 'z', 'x', 'c', 'v', 'b', 'n', 'm', '.',  13 },  //9:TAB, 13:CR
-  {   0,  17,  18, ' ', ' ', ' ',  19,  20,  21,   0 }   //17:SHFT, 18:FN, 19:<-, 20:SEL, 21:-> 
+    { 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p' },
+    { 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',   8 },  // 8:BKSP
+    {   9, 'z', 'x', 'c', 'v', 'b', 'n', 'm', '.',  13 },  // 9:TAB, 13:CR
+    {   0,  17,  18, ' ', ' ', ' ',  19,  20,  21,   0 }   // 17:SHFT, 18:FN, 19:<-, 20:SEL, 21:->
 };
-
 char keysArraySHFT[4][10] = {
-  { 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P' },
-  { 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',   8 },
-  {   9, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',',  13 },
-  {   0,  17,  18, ' ', ' ', ' ',  19,  20,  21,   0 }
+    { 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P' },
+    { 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',   8 },
+    {   9, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',',  13 },
+    {   0,  17,  18, ' ', ' ', ' ',  19,  20,  21,   0 }
 };
-
 char keysArrayFN[4][10] = {
-  { '1', '2', '3', '4', '5', '6', '7',  '8',  '9', '0' },
-  { '#', '!', '$', ':', ';', '(', ')', '\'', '\"',   8 },
-  {  14, '%', '_', '&', '+', '-', '/',  '?',  ',',  13 },
-  {   0,  17,  18, ' ', ' ', ' ',  12,    7,    6,   0 }
+    { '1', '2', '3', '4', '5', '6', '7',  '8',  '9', '0' },
+    { '#', '!', '$', ':', ';', '(', ')', '\'', '\"',   8 },
+    {  14, '%', '_', '&', '+', '-', '/',  '?',  ',',  13 },
+    {   0,  17,  18, ' ', ' ', ' ',  12,    7,    6,   0 }
 };
-
-// Touch slider setup
+// Capacitive touch slider
 Adafruit_MPR121 cap = Adafruit_MPR121();
 
-// RTC setup
+// ===================== AUDIO =====================
+// Buzzer for sound feedback
+Buzzer buzzer(17);
+
+// ===================== RTC =====================
+// Real-time clock chip
 RTC_PCF8563 rtc;
+// Day names
 const char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
-// USB
+// ===================== USB & STORAGE =====================
+// USB mass storage controller
 USBMSC msc;
-bool mscEnabled = false;
-sdmmc_card_t* card = nullptr;
+bool mscEnabled = false;          // Is USB MSC active?
+sdmmc_card_t* card = nullptr;     // SD card pointer
 
-// VARIABLES
-// GENERAL
+// ===================== SYSTEM SETTINGS =====================
+// Persistent preferences (NVS)
 Preferences prefs;
-int TIMEOUT;              // Time until automatic sleep (Seconds)
-bool DEBUG_VERBOSE;       // Spit out some extra information
-bool SYSTEM_CLOCK;        // Enable a small clock on the bottom of the screen.
-bool SHOW_YEAR;           // Show the year on the clock
-bool SAVE_POWER;          // Enable a slower CPU clock speed to save battery with little cost to performance
-bool ALLOW_NO_MICROSD;    // Allow the device to operate with no SD card
-bool HOME_ON_BOOT;        // Always start the home app on boot
-int OLED_BRIGHTNESS;      // Brightness of the OLED (0-255)
-int OLED_MAX_FPS;         // Define the max oled FPS
+int TIMEOUT;              // Auto sleep timeout (seconds)
+bool DEBUG_VERBOSE;       // Extra debug output
+bool SYSTEM_CLOCK;        // Show clock on screen
+bool SHOW_YEAR;           // Show year in clock
+bool SAVE_POWER;          // Enable power saving mode
+bool ALLOW_NO_MICROSD;    // Allow running without SD card
+bool HOME_ON_BOOT;        // Start home app on boot
+int OLED_BRIGHTNESS;      // OLED brightness (0-255)
+int OLED_MAX_FPS;         // OLED max FPS
 
-volatile int einkRefresh = FULL_REFRESH_AFTER;
-int OLEDFPSMillis = 0;
-int KBBounceMillis = 0;
-volatile int timeoutMillis = 0;
-volatile int prevTimeMillis = 0;
-volatile bool TCA8418_event = false;
-volatile bool PWR_BTN_event = false;
-volatile bool SHFT = false;
-volatile bool FN = false;
-volatile bool newState = false;
-bool noTimeout = false;
-volatile bool OLEDPowerSave = false;
-volatile bool disableTimeout = false;
-volatile int battState = 0;
-volatile int prevBattState = 0;
-unsigned int flashMillis = 0;
-int prevTime = 0;
-uint8_t prevSec = 0;
-TaskHandle_t einkHandlerTaskHandle = NULL;
-char currentKB[4][10];
-KBState CurrentKBState = NORMAL;
-uint8_t partialCounter = 0;
-volatile bool forceSlowFullUpdate = false;
-volatile bool SDCARD_INSERT = false;
-bool noSD = false;
-volatile bool SDActive = false;
+// ===================== SYSTEM STATE =====================
+// E-Ink refresh control
+volatile int einkRefresh = FULL_REFRESH_AFTER; // Partial/full refresh counter
+int OLEDFPSMillis = 0;            // Last OLED FPS update time
+int KBBounceMillis = 0;           // Last keyboard debounce time
+volatile int timeoutMillis = 0;   // Timeout tracking
+volatile int prevTimeMillis = 0;  // Previous time for timeout
+volatile bool TCA8418_event = false;  // Keypad interrupt event
+volatile bool PWR_BTN_event = false;  // Power button event
+volatile bool SHFT = false;           // Shift key state
+volatile bool FN = false;             // Function key state
+volatile bool newState = false;       // App state changed
+bool noTimeout = false;               // Disable timeout
+volatile bool OLEDPowerSave = false;  // OLED power save mode
+volatile bool disableTimeout = false; // Disable timeout globally
+volatile int battState = 0;           // Battery state
+volatile int prevBattState = 0;       // Previous battery state
+unsigned int flashMillis = 0;         // Flash timing
+int prevTime = 0;                     // Previous time (minutes)
+uint8_t prevSec = 0;                  // Previous seconds
+TaskHandle_t einkHandlerTaskHandle = NULL; // E-Ink handler task
+uint8_t partialCounter = 0;           // Counter for partial refreshes
+volatile bool forceSlowFullUpdate = false; // Force slow full update
 
+<<<<<<< HEAD
 const String appStateNames[] = { "txt", "filewiz", "usb", "bt", "settings", "tasks", "calendar", "journal", "lexicon", "calc" };
 const unsigned char *appIcons[10] = { _homeIcons2, _homeIcons3, _homeIcons4, _homeIcons5, _homeIcons6, taskIconTasks0, _homeIcons7, _homeIcons8, _homeIcons9,_homeIcons10};
+=======
+// ===================== KEYBOARD STATE =====================
+char currentKB[4][10];            // Current keyboard layout
+KBState CurrentKBState = NORMAL;  // Current keyboard state
+>>>>>>> upstream/main
 
-AppState CurrentAppState;
+// ===================== FILES & TEXT =====================
+volatile bool SDCARD_INSERT = false;  // SD card inserted event
+bool noSD = false;                    // No SD card present
+volatile bool SDActive = false;       // SD card active
+String editingFile;                   // Currently edited file
+const GFXfont *currentFont = (GFXfont *)&FreeSerif9pt7b; // Current font
+uint8_t maxCharsPerLine = 0;          // Max chars per line (display)
+uint8_t maxLines = 0;                 // Max lines per screen
+uint8_t fontHeight = 0;               // Font height in pixels
+uint8_t lineSpacing = 6;              // Line spacing in pixels
+String workingFile = "";              // Working file name
+String filesList[MAX_FILES];          // List of files
 
-// <TXT.cpp>
-String currentWord = "";
-String allText = "";
-String prevAllText = "";
-String prevLastLine = "";
-bool prevBKSP = false;
-int scroll = 0;
-int lines = 0;
-String outLines[13];
-String lines_prev[13];
-String filesList[MAX_FILES];
-uint8_t fileIndex = 0;
-String editingFile;
-String prevEditingFile = "";
-String excludedFiles[3] = { "/temp.txt", "/settings.txt", "/tasks.txt" };
-TXTState CurrentTXTState = TXT_;
+// ===================== APP STATES =====================
+const String appStateNames[] = { "txt", "filewiz", "usb", "bt", "settings", "tasks", "calendar", "journal", "lexicon" }; // App state names
+const unsigned char *appIcons[9] = { _homeIcons2, _homeIcons3, _homeIcons4, _homeIcons5, _homeIcons6, taskIconTasks0, _homeIcons7, _homeIcons8, _homeIcons9}; // App icons
+AppState CurrentAppState;             // Current app state
 
-String currentLine = "";
-const GFXfont *currentFont = (GFXfont *)&FreeSerif9pt7b;
-uint8_t maxCharsPerLine = 0;
-uint8_t maxLines = 0;
-uint8_t fontHeight = 0;
-uint8_t lineSpacing = 6;  // LINE SPACING IN PIXELS
-volatile bool newLineAdded = true;
-volatile bool doFull = false;
-std::vector<String> allLines;
-volatile long int dynamicScroll = 0;
-volatile long int prev_dynamicScroll = 0;
-int lastTouch = -1;
-unsigned long lastTouchTime = 0;
+// ===================== TXT APP =====================
+volatile bool newLineAdded = true;           // New line added in TXT
+std::vector<String> allLines;                // All lines in TXT
+volatile long int dynamicScroll = 0;         // Dynamic scroll offset
+volatile long int prev_dynamicScroll = 0;    // Previous scroll offset
+int lastTouch = -1;                          // Last touch event
+unsigned long lastTouchTime = 0;             // Last touch time
 
-// <TASKS.cpp>
-std::vector<std::vector<String>> tasks;
-uint8_t selectedTask = 0;
-TasksState CurrentTasksState = TASKS0;
-uint8_t newTaskState = 0;
-uint8_t editTaskState = 0;
-String newTaskName = "";
-String newTaskDueDate = "";
+// ===================== TASKS APP =====================
+std::vector<std::vector<String>> tasks;      // Task list
 
+<<<<<<< HEAD
 // <HOME.cpp>
 HOMEState CurrentHOMEState = HOME_HOME;
 
@@ -277,3 +265,7 @@ LexState CurrentLexState = MENU;
 // <JOURNAL.cpp>
 JournalState CurrentJournalState = J_MENU;
 
+=======
+// ===================== HOME APP =====================
+HOMEState CurrentHOMEState = HOME_HOME;      // Current home state
+>>>>>>> upstream/main

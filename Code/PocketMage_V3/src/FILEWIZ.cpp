@@ -7,9 +7,15 @@
 //  o888o        o888o o888ooooood8 o888ooooood8       `8'      `8'       o888o .8888888888P   //
 #include "globals.h"
 
+enum FileWizState { WIZ0_, WIZ1_, WIZ1_YN, WIZ2_R, WIZ2_C, WIZ3_ };
+FileWizState CurrentFileWizState = WIZ0_;
+
+String currentWord = "";
+static String currentLine = "";
+
 void FILEWIZ_INIT() {
   CurrentAppState = FILEWIZ;
-  CurrentKBState  = NORMAL;
+  CurrentKBState  = FUNC;
   forceSlowFullUpdate = true;
   newState = true;
 }
@@ -34,11 +40,7 @@ void processKB_FILEWIZ() {
         if (inchar == 0);
         //BKSP Recieved
         else if (inchar == 127 || inchar == 8 || inchar == 12) {
-          CurrentAppState = HOME;
-          currentLine     = "";
-          CurrentKBState  = NORMAL;
-          CurrentHOMEState = HOME_HOME;
-          newState = true;
+          HOME_INIT();
           break;
         }
         else if (inchar >= '0' && inchar <= '9') {

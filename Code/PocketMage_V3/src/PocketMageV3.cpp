@@ -18,14 +18,7 @@ void applicationEinkHandler() {
       einkHandler_HOME();
       break;
     case TXT:
-      switch (TXT_APP_STYLE) {
-        case 0:
-          einkHandler_TXT();
-          break;
-        case 1:
-          einkHandler_TXT_NEW();
-          break;
-      }
+      einkHandler_TXT_NEW();
       break;
     case FILEWIZ:
       einkHandler_FILEWIZ();
@@ -62,14 +55,7 @@ void processKB() {
       processKB_HOME();
       break;
     case TXT:
-      switch (TXT_APP_STYLE) {
-        case 0:
-          processKB_TXT();
-          break;
-        case 1:
-          processKB_TXT_NEW();
-          break;
-      }
+      processKB_TXT_NEW();
       break;
     case FILEWIZ:
       processKB_FILEWIZ();

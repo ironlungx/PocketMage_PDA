@@ -67,7 +67,11 @@ void PocketmageEink::setFastFullRefresh(bool setting) {
   }*/
 }
 void PocketmageEink::statusBar(const String& input, bool fullWindow) {
+<<<<<<< HEAD
   setTXTFont(&FreeMonoBold9pt7b);
+=======
+  display_.setFont(&FreeMonoBold9pt7b);
+>>>>>>> 5b7efad6c60785ab138dff8b250cacb6acce7599
   if (!fullWindow){
     display_.setPartialWindow(0, display_.height() - 20, display_.width(), 20);
     display_.fillRect(0, display_.height() - 26, display_.width(), 26, GxEPD_WHITE);
@@ -81,7 +85,11 @@ void PocketmageEink::statusBar(const String& input, bool fullWindow) {
 void PocketmageEink::drawStatusBar(const String& input) {
   display_.fillRect(0, display_.height() - 26, display_.width(), 26, GxEPD_WHITE);
   display_.drawRect(0, display_.height() - 20, display_.width(), 20, GxEPD_BLACK);
+<<<<<<< HEAD
   setTXTFont(&FreeMonoBold9pt7b);
+=======
+  display_.setFont(&FreeMonoBold9pt7b);
+>>>>>>> 5b7efad6c60785ab138dff8b250cacb6acce7599
   display_.setCursor(4, display_.height() - 6);
   display_.print(input);
 }
@@ -99,17 +107,29 @@ void PocketmageEink::computeFontMetrics_() {
 }
 void PocketmageEink::setTXTFont(const GFXfont* font) {
   // SET THE FONT
+<<<<<<< HEAD
   const bool changed = (currentFont_ != font);
   currentFont_ = font; 
   display_.setFont(currentFont_); 
   // maxCharsPerLine and maxLines
   if (changed) computeFontMetrics_();
+=======
+  if (currentFont_ == font) return; 
+  display_.setFont(font);
+  currentFont_ = font;
+  // maxCharsPerLine and maxLines
+  computeFontMetrics_();
+>>>>>>> 5b7efad6c60785ab138dff8b250cacb6acce7599
 }
 void PocketmageEink::einkTextDynamic(bool doFull, bool noRefresh) {
   if (!lines_ || !currentFont_) return;
   
    // SET FONT
+<<<<<<< HEAD
   setTXTFont(currentFont_);
+=======
+  display_.setFont(currentFont_);
+>>>>>>> 5b7efad6c60785ab138dff8b250cacb6acce7599
 
   // ITERATE AND DISPLAY
   uint8_t size = lines_->size();

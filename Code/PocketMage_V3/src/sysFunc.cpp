@@ -512,9 +512,7 @@ char updateKeypress() {
 
   return 0;
 }
-
 void updateScrollFromTouch() {
-
   uint16_t touched = cap.touched();  // Read touch state
   int newTouch = -1;
 

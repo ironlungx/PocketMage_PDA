@@ -6,6 +6,11 @@ CalendarState CurrentCalendarState = MONTH;
 
 static String currentLine = "";
 
+enum CalendarState { WEEK, MONTH, NEW_EVENT, VIEW_EVENT, SUN, MON, TUE, WED, THU, FRI, SAT };
+CalendarState CurrentCalendarState = MONTH;
+
+static String currentLine = "";
+
 int monthOffsetCount = 0;
 int weekOffsetCount = 0;
 

@@ -3,6 +3,9 @@
 enum JournalState {J_MENU, J_TXT};
 JournalState CurrentJournalState = J_MENU;
 
+enum JournalState {J_MENU, J_TXT};
+JournalState CurrentJournalState = J_MENU;
+
 String currentJournal = "";
 String bufferEditingFile = editingFile;
 static String currentLine = "";

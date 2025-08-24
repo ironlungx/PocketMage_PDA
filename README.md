@@ -1,4 +1,4 @@
-# EinkPDA
+# PocketMage PDA
 [Please note that this project is a work in progress and incomplete]
 
 @Ashtf 2025
@@ -14,29 +14,76 @@
 
   I will try my best to keep this GitHub up to date with the development of the device.
 
-# [TO-DO]
+# [Hardware]
+- ESP32-S3 WROOM1 with 16mb flash and 8mb RAM. WiFi and Bluetooth supported.
+- 3.1" 320x240px 1-bit SPI Eink panel (GDEQ031T10) with integrated driver
+- 256x32px 1-bit SPI OLED (SSD1326, ER-OLED018-1W) with integrated driver
+- MicroSD card slot with support for up to 2TB
+- TCA8418 I2C Keyboard Matrix IC
+- Piezo Buzzer (Simple Tones)
+- Power Button
+- 1200mAh pouch-style LiPo battery with JST PH (2mm) connector
+- USB Type-C connector
+- PCF8563T I2C RTC (Real Time Clock) module
+- Expansion port with the following breakouts:
+    - +3.3v
+    - GND
+    - I2C SDA
+    - I2C SCL
+    - SPI MOSI
+    - SPI SCK
+    - SPI MISO
+    - GPIO A
+    - GPIO B
+    - GPIO C
+    - GPIO D / UART TX (changeable with solder jumper, default TX)
+    - GPIO E / UART RX (changeable with solder jumper, default RX)
+
+
+# [Software]
+- Text editor app
+- FileWizard file-management app
 - Calendar app
+- USB file transfer app
+- Settings app
+- Tasks app
 - Journal app
+- Dictionary app (Lexicon)
+- Basic commands supported through the home menu:
+    - roll dN (dice roll, N=number of sides)
+    - set time and date
+    - directly open files in Notes or FileWiz by typing the name
+    - etc.
+
+# [Planned Features]
+- Timers and alarms
+- E-book reader
+- WiFi notes/calendar sync (Google Docs/Calendar)
+- LoRa/Meshtastic add-on module
+- Battery expansion add-on module
+- Custom abbreviations
 - Bluetooth keyboard support
 
 # License
-All files are distrubuted under GNU GPLv3 license:
+All files are distributed under CC BY-NC-SA 4.0 license:
 
-EInkPDA - A small note-taking and productivity device using E-Ink and OLED.
+PocketMage PDA - A clamshell note-taking and productivity device using E-Ink and OLED.
 
 Copyright (C) 2025 Ashtf
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC--BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**.  
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+You are free to:  
+- **Share** — copy and redistribute the material in any medium or format  
+- **Adapt** — remix, transform, and build upon the material  
 
+Under the following terms:  
+- **Attribution** — You must give appropriate credit.  
+- **NonCommercial** — You may not use this material for commercial purposes.  
+- **ShareAlike** — If you remix, transform, or build upon it, you must distribute your contributions under the same license.  
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+The original author retains the right to use this work commercially.  
+
+Full license details: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  

@@ -17,6 +17,16 @@ void HOME_INIT() {
   newState = true;
 }
 
+static String currentLine = "";
+
+void HOME_INIT() {
+  CurrentAppState = HOME;
+  currentLine     = "";
+  CurrentKBState  = NORMAL;
+  CurrentHOMEState = HOME_HOME;
+  newState = true;
+}
+
 void commandSelect(String command) {
   command.toLowerCase();
 

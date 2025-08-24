@@ -5,6 +5,11 @@ SettingsState CurrentSettingsState = settings0;
 
 static String currentLine = "";
 
+enum SettingsState { settings0, settings1 };
+SettingsState CurrentSettingsState = settings0;
+
+static String currentLine = "";
+
 void SETTINGS_INIT() {
   // OPEN SETTINGS
   currentLine = "";

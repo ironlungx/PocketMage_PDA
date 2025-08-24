@@ -1,7 +1,9 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+
 // LIBRARIES
+#pragma once
 #include <Arduino.h>
 #include <GxEPD2_BW.h>
 #include <U8g2lib.h>
@@ -15,15 +17,15 @@
 #include <SD_MMC.h>
 #include <Preferences.h>
 #include <stdint.h>
-#include "Adafruit_MPR121.h"
-#include "esp_cpu.h"
-#include "RTClib.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include <Adafruit_MPR121.h>
+#include <esp_cpu.h>
+#include <RTClib.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <assets.h>
+#include <config.h>
 
-#include "assets.h"
-#include "config.h"
-
+/* // migrated to pocketmage_eink.h
 // FONTS
 // 3x7
 #include "Fonts/Font3x7FixedNum.h"
@@ -39,6 +41,9 @@
 #include <Fonts/FreeMono12pt7b.h>
 #include <Fonts/FreeSans12pt7b.h>
 #include <Fonts/FreeSerif12pt7b.h>
+*/
+
+/* // migrated to pocketmage_oled.h
 // U8G2 FONTS
 //U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 //u8g2_font_4x6_mf
@@ -46,6 +51,7 @@
 //u8g2_font_spleen5x8_mf
 //u8g2_font_boutique_bitmap_9x9_tf
 //u8g2_font_courR08_tf.h
+*/
 
 // ===================== DISPLAY =====================
 // E-Ink display object
@@ -121,11 +127,11 @@ extern volatile bool SDActive;       // SD card active
 
 // ===================== FILES & TEXT =====================
 extern String editingFile;           // Currently edited file
-extern const GFXfont *currentFont;   // Current font
-extern uint8_t maxCharsPerLine;      // Max chars per line (display)
-extern uint8_t maxLines;             // Max lines per screen
-extern uint8_t fontHeight;           // Font height in pixels
-extern uint8_t lineSpacing;          // Line spacing in pixels
+//extern const GFXfont *currentFont;   // Current font
+//extern uint8_t maxCharsPerLine;      // Max chars per line (display)
+//extern uint8_t maxLines;             // Max lines per screen
+//extern uint8_t fontHeight;           // Font height in pixels
+//extern uint8_t lineSpacing;          // Line spacing in pixels
 extern String workingFile;           // Working file name
 extern String filesList[MAX_FILES];  // List of files
 
@@ -133,8 +139,8 @@ extern String filesList[MAX_FILES];  // List of files
 enum KBState { NORMAL, SHIFT, FUNC };    // Keyboard state
 extern KBState CurrentKBState;           // Current keyboard state
 
-extern uint8_t partialCounter;           // E-Ink partial refresh counter
-extern volatile bool forceSlowFullUpdate;// Force slow full update
+// extern uint8_t partialCounter;           // E-Ink partial refresh counter
+// extern volatile bool forceSlowFullUpdate;// Force slow full update
 
 enum AppState { HOME, TXT, FILEWIZ, USB_APP, BT, SETTINGS, TASKS, CALENDAR, JOURNAL, LEXICON };
 extern const String appStateNames[];     // App state names
@@ -194,15 +200,17 @@ void renameFile(fs::FS &fs, const char *path1, const char *path2);
 void deleteFile(fs::FS &fs, const char *path);
 void setTimeFromString(String timeStr);
 
-// <OLEDFunc.cpp>
+/* //migrated to pocketmage_oled.h
+// <OLEDFunc.cpp> 
 void oledWord(String word, bool allowLarge = false, bool showInfo = true);
 void oledLine(String line, bool doProgressBar = true, String bottomMsg = "");
 void oledScroll();
 void infoBar();
+*/
 
+/* // migrated to pocketmage_eink.h
 // <einkFunc.cpp>
 void refresh();
-void einkHandler(void *parameter);
 void statusBar(String input, bool fullWindow = false);
 void einkTextPartial(String text, bool noRefresh = false);
 int  countLines(String input, size_t maxLineLength = 29);
@@ -211,6 +219,7 @@ void setTXTFont(const GFXfont *font);
 void setFastFullRefresh(bool setting);
 void drawStatusBar(String input);
 void multiPassRefesh(int passes);
+*/
 
 // <FILEWIZ.cpp>
 void FILEWIZ_INIT();
@@ -261,6 +270,7 @@ void processKB_JOURNAL();
 void einkHandler_JOURNAL();
 
 // <PocketMage>
+void einkHandler(void *parameter); // moved from EinkFunc.cpp
 void applicationEinkHandler();
 void processKB();
 

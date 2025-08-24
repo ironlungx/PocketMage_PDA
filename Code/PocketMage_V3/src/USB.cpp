@@ -1,9 +1,10 @@
-#include "globals.h"
+#include <pocketmage.h>
+
 #include <USB.h>
 #include <USBMSC.h>
-#include "sdmmc_cmd.h"
-#include "driver/sdmmc_host.h"
-#include "driver/sdmmc_defs.h"
+#include <sdmmc_cmd.h>
+#include <driver/sdmmc_host.h>
+#include <driver/sdmmc_defs.h>
 
 static String currentLine = "";
 
@@ -38,15 +39,15 @@ void USBAppShutdown() {
 
   if (!SD_MMC.begin("/sdcard", true) || SD_MMC.cardType() == CARD_NONE) {
     Serial.println("MOUNT FAILED");
-    oledWord("SD Card Not Detected!");
+    getOled().oledWord("SD Card Not Detected!");
     delay(2000);
 
     if (ALLOW_NO_MICROSD) {
-      oledWord("All Work Will Be Lost!");
+      getOled().oledWord("All Work Will Be Lost!");
       delay(5000);
       noSD = true;
     } else {
-      oledWord("Insert SD Card and Reboot!");
+      getOled().oledWord("Insert SD Card and Reboot!");
       delay(5000);
       u8g2.setPowerSave(1);
       playJingle("shutdown");
@@ -57,9 +58,7 @@ void USBAppShutdown() {
 
   if (!SD_MMC.exists("/sys"))     SD_MMC.mkdir("/sys");
   if (!SD_MMC.exists("/journal")) SD_MMC.mkdir("/journal");
-
   if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
-
   disableTimeout = false;
 }
 
@@ -110,7 +109,7 @@ static void usbEventCallback(void* arg, esp_event_base_t event_base, int32_t eve
 
 void USB_INIT() {
   // OPEN USB FILE TRANSFER
-  oledWord("Initializing USB");
+  getOled().oledWord("Initializing USB");
   setCpuFrequencyMhz(240);
   delay(50);
 
@@ -189,7 +188,7 @@ void processKB_USB() {
   //Make sure oled only updates at 10FPS
   if (currentMillis - OLEDFPSMillis >= (1000/10 /*OLED_MAX_FPS*/)) {
     OLEDFPSMillis = currentMillis;
-    oledLine(currentLine, false);
+    getOled().oledLine(currentLine, false);
   }
   
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
@@ -215,11 +214,11 @@ void einkHandler_USB() {
     display.fillScreen(GxEPD_WHITE);
 
     // Display Status Bar
-    drawStatusBar("Connect to a Computer:");
+    getEink().drawStatusBar("Connect to a Computer:");
 
     // Display Background
     display.drawBitmap(0, 0, _usb, 320, 218, GxEPD_BLACK);
 
-    multiPassRefesh(2);
+    getEink().multiPassRefesh(2);
   }
 }

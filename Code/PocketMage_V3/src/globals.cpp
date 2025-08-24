@@ -9,6 +9,7 @@ volatile bool GxEPD2_310_GDEQ031T10::useFastFullUpdate = true;
 // 256x32 SPI OLED display object
 U8G2_SSD1326_ER_256X32_F_4W_HW_SPI u8g2(U8G2_R2, OLED_CS, OLED_DC, OLED_RST);
 
+
 // ===================== INPUT DEVICES =====================
 // Matrix keypad controller
 Adafruit_TCA8418 keypad;
@@ -96,11 +97,11 @@ volatile bool SDCARD_INSERT = false;  // SD card inserted event
 bool noSD = false;                    // No SD card present
 volatile bool SDActive = false;       // SD card active
 String editingFile;                   // Currently edited file
-const GFXfont *currentFont = (GFXfont *)&FreeSerif9pt7b; // Current font
-uint8_t maxCharsPerLine = 0;          // Max chars per line (display)
-uint8_t maxLines = 0;                 // Max lines per screen
-uint8_t fontHeight = 0;               // Font height in pixels
-uint8_t lineSpacing = 6;              // Line spacing in pixels
+// const GFXfont *currentFont = (GFXfont *)&FreeSerif9pt7b; // Current font
+// uint8_t maxCharsPerLine = 0;          // Max chars per line (display)
+// uint8_t maxLines = 0;                 // Max lines per screen
+// uint8_t fontHeight = 0;               // Font height in pixels
+// uint8_t lineSpacing = 6;              // Line spacing in pixels
 String workingFile = "";              // Working file name
 String filesList[MAX_FILES];          // List of files
 

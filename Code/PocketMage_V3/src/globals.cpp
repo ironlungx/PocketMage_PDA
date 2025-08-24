@@ -96,11 +96,11 @@ volatile bool SDCARD_INSERT = false;  // SD card inserted event
 bool noSD = false;                    // No SD card present
 volatile bool SDActive = false;       // SD card active
 String editingFile;                   // Currently edited file
-const GFXfont *currentFont = (GFXfont *)&FreeSerif9pt7b; // Current font
-uint8_t maxCharsPerLine = 0;          // Max chars per line (display)
-uint8_t maxLines = 0;                 // Max lines per screen
-uint8_t fontHeight = 0;               // Font height in pixels
-uint8_t lineSpacing = 6;              // Line spacing in pixels
+// const GFXfont *currentFont = (GFXfont *)&FreeSerif9pt7b; // Current font
+// uint8_t maxCharsPerLine = 0;          // Max chars per line (display)
+// uint8_t maxLines = 0;                 // Max lines per screen
+// uint8_t fontHeight = 0;               // Font height in pixels
+// uint8_t lineSpacing = 6;              // Line spacing in pixels
 String workingFile = "";              // Working file name
 String filesList[MAX_FILES];          // List of files
 

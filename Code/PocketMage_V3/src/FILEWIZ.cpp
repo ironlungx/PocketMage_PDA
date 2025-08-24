@@ -14,12 +14,6 @@ FileWizState CurrentFileWizState = WIZ0_;
 String currentWord = "";
 static String currentLine = "";
 
-enum FileWizState { WIZ0_, WIZ1_, WIZ1_YN, WIZ2_R, WIZ2_C, WIZ3_ };
-FileWizState CurrentFileWizState = WIZ0_;
-
-String currentWord = "";
-static String currentLine = "";
-
 void FILEWIZ_INIT() {
   CurrentAppState = FILEWIZ;
   CurrentKBState  = FUNC;

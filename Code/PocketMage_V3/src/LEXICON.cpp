@@ -1,9 +1,5 @@
 #include <pocketmage.h>
 
-enum LexState {MENU, DEF};
-LexState CurrentLexState = MENU;
-
-static String currentLine = "";
 
 enum LexState {MENU, DEF};
 LexState CurrentLexState = MENU;

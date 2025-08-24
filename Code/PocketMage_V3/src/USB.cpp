@@ -2,9 +2,9 @@
 
 #include <USB.h>
 #include <USBMSC.h>
-#include "sdmmc_cmd.h"
-#include "driver/sdmmc_host.h"
-#include "driver/sdmmc_defs.h"
+#include <sdmmc_cmd.h>
+#include <driver/sdmmc_host.h>
+#include <driver/sdmmc_defs.h>
 
 static String currentLine = "";
 
@@ -58,9 +58,7 @@ void USBAppShutdown() {
 
   if (!SD_MMC.exists("/sys"))     SD_MMC.mkdir("/sys");
   if (!SD_MMC.exists("/journal")) SD_MMC.mkdir("/journal");
-
   if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
-
   disableTimeout = false;
 }
 

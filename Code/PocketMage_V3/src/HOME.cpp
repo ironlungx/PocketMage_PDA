@@ -7,15 +7,6 @@
 //  o888o   o888o  `Y8bood8P'  o8o        o888o o888ooooood8  //
 #include <pocketmage.h>
 
-static String currentLine = "";
-
-void HOME_INIT() {
-  CurrentAppState = HOME;
-  currentLine     = "";
-  CurrentKBState  = NORMAL;
-  CurrentHOMEState = HOME_HOME;
-  newState = true;
-}
 
 static String currentLine = "";
 

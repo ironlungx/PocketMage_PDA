@@ -17,7 +17,7 @@ static String currentLine = "";
 void FILEWIZ_INIT() {
   CurrentAppState = FILEWIZ;
   CurrentKBState  = FUNC;
-  getEink().forceSlowFullUpdate(true);
+  EINK().forceSlowFullUpdate(true);
   newState = true;
 }
 
@@ -60,7 +60,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         KBBounceMillis = currentMillis;
       }
@@ -107,7 +107,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         KBBounceMillis = currentMillis;
       }
@@ -150,7 +150,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         KBBounceMillis = currentMillis;
       }
@@ -222,7 +222,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
       }
       break;
@@ -293,7 +293,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
       }
       break;
@@ -311,7 +311,7 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("Select a File (0-9)");
+        EINK().drawStatusBar("Select a File (0-9)");
         display.drawBitmap(0, 0, fileWizardallArray[0], 320, 218, GxEPD_BLACK);
 
         // DRAW FILE LIST
@@ -324,7 +324,7 @@ void einkHandler_FILEWIZ() {
           display.print(filesList[i]);
         }
 
-        getEink().refresh();
+        EINK().refresh();
       }
       break;
     case WIZ1_:
@@ -335,10 +335,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("- " + workingFile);
+        EINK().drawStatusBar("- " + workingFile);
         display.drawBitmap(0, 0, fileWizardallArray[1], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        EINK().refresh();
       }
       break;
     case WIZ1_YN:
@@ -349,10 +349,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("DEL:" + workingFile + "?(Y/N)");
+        EINK().drawStatusBar("DEL:" + workingFile + "?(Y/N)");
         display.drawBitmap(0, 0, fileWizardallArray[1], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        EINK().refresh();
       }
       break;
     case WIZ2_R:
@@ -363,10 +363,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("Enter New Filename:");
+        EINK().drawStatusBar("Enter New Filename:");
         display.drawBitmap(0, 0, fileWizardallArray[2], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        EINK().refresh();
       }
       break;
     case WIZ2_C:
@@ -377,10 +377,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("Enter Name For Copy:");
+        EINK().drawStatusBar("Enter Name For Copy:");
         display.drawBitmap(0, 0, fileWizardallArray[2], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        EINK().refresh();
       }
       break;
   }

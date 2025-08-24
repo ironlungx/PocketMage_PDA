@@ -52,15 +52,12 @@ public:
   void einkTextDynamic(bool doFull, bool noRefresh=false);
   int  countLines(const String& input, size_t maxLineLength = 29);
 
-
   // getters 
   uint8_t maxCharsPerLine() const;
   uint8_t maxLines() const;
   const GFXfont* getCurrentFont();
   
-
   void forceSlowFullUpdate(bool force);
-
 
   uint8_t fullRefreshAfter_ = 5; // FULL_REFRESH_AFTER = 5
 
@@ -80,6 +77,4 @@ private:
   uint8_t maxCharsPerLine_ = 0;
   uint8_t maxLines_        = 0;
   uint8_t fontHeight_      = 0;
-
-
 };

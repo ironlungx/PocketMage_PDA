@@ -39,7 +39,7 @@ void processKB_TXT_NEW() {
     switch (CurrentTXTState) {
       case TXT_:
         // SET MAXIMUMS AND FONT
-        getEink().setTXTFont(getEink().getCurrentFont());
+        EINK().setTXTFont(EINK().getCurrentFont());
 
         // UPDATE SCROLLBAR
         updateScrollFromTouch();
@@ -81,7 +81,7 @@ void processKB_TXT_NEW() {
         else if (inchar == 20) {                                  
           allLines.clear();
           currentLine = "";
-          getOled().oledWord("Clearing...");
+          OLED().oledWord("Clearing...");
           doFull = true;
           newLineAdded = true;
           delay(300);
@@ -149,10 +149,10 @@ void processKB_TXT_NEW() {
           OLEDFPSMillis = currentMillis;
           // ONLY SHOW OLEDLINE WHEN NOT IN SCROLL MODE
           if (lastTouch == -1) {
-            getOled().oledLine(currentLine);
+            OLED().oledLine(currentLine);
             if (prev_dynamicScroll != dynamicScroll) prev_dynamicScroll = dynamicScroll;
           }
-          else getOled().oledScroll();
+          else OLED().oledScroll();
         }
 
         if (currentLine.length() > 0) {
@@ -207,7 +207,7 @@ void processKB_TXT_NEW() {
             //Selected file does not exist, create a new one
             if (filesList[fileIndex - 1] == "-") {
               CurrentTXTState = WIZ3;
-              getEink().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
+              EINK().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
               newState = true;
               display.fillScreen(GxEPD_WHITE);
             }
@@ -216,7 +216,7 @@ void processKB_TXT_NEW() {
               prevEditingFile = editingFile;
               editingFile = filesList[fileIndex - 1];      
               CurrentTXTState = WIZ1;
-              getEink().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
+              EINK().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
               newState = true;
               display.fillScreen(GxEPD_WHITE);
             }
@@ -237,7 +237,7 @@ void processKB_TXT_NEW() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         break;
       case WIZ1:
@@ -247,7 +247,7 @@ void processKB_TXT_NEW() {
         else if (inchar == 127 || inchar == 8) {                  
           CurrentTXTState = WIZ0;
           CurrentKBState = FUNC;
-          getEink().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
+          EINK().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
           newState = true;
           display.fillScreen(GxEPD_WHITE);
         }
@@ -261,7 +261,7 @@ void processKB_TXT_NEW() {
               CurrentTXTState = WIZ2;
               currentWord = "";
               CurrentKBState = NORMAL;
-              getEink().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
+              EINK().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
               newState = true;
               display.fillScreen(GxEPD_WHITE);
             }
@@ -301,7 +301,7 @@ void processKB_TXT_NEW() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         break;
 
@@ -366,7 +366,7 @@ void processKB_TXT_NEW() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         break;
       case WIZ3:
@@ -423,7 +423,7 @@ void processKB_TXT_NEW() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         break;
       case FONT:
@@ -442,32 +442,32 @@ void processKB_TXT_NEW() {
           int fontIndex = (inchar == '0') ? 10 : (inchar - '0');
           switch (fontIndex) {
             case 1:
-              getEink().setCurrentFont(&FreeMonoBold9pt7b);
+              EINK().setCurrentFont(&FreeMonoBold9pt7b);
               break;
             case 2:
-              getEink().setCurrentFont(&FreeSans9pt7b);
+              EINK().setCurrentFont(&FreeSans9pt7b);
               break;
             case 3:
-              getEink().setCurrentFont(&FreeSerif9pt7b);
+              EINK().setCurrentFont(&FreeSerif9pt7b);
               break;
             case 4:
-              getEink().setCurrentFont(&FreeSerifBold9pt7b);
+              EINK().setCurrentFont(&FreeSerifBold9pt7b);
               break;
             case 5:
-              getEink().setCurrentFont(&FreeMono12pt7b);
+              EINK().setCurrentFont(&FreeMono12pt7b);
               break;
             case 6:
-              getEink().setCurrentFont(&FreeSans12pt7b);
+              EINK().setCurrentFont(&FreeSans12pt7b);
               break;
             case 7:
-              getEink().setCurrentFont(&FreeSerif12pt7b);
+              EINK().setCurrentFont(&FreeSerif12pt7b);
               break;
             default:
-              getEink().setCurrentFont(&FreeMonoBold9pt7b);
+              EINK().setCurrentFont(&FreeMonoBold9pt7b);
               break;
           }
           // SET THE FONT
-          getEink().setTXTFont(getEink().getCurrentFont());
+          EINK().setTXTFont(EINK().getCurrentFont());
 
           // UPDATE THE ARRAY TO MATCH NEW FONT SIZE
           String fullTextStr = vectorToString();
@@ -485,7 +485,7 @@ void processKB_TXT_NEW() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          OLED().oledLine(currentWord, false);
         }
         break;
 
@@ -500,22 +500,22 @@ void einkHandler_TXT_NEW() {
       case TXT_:
         if (newState && doFull) {
           display.fillScreen(GxEPD_WHITE);
-          getEink().refresh();
+          EINK().refresh();
         }
         if (newLineAdded && !newState) {
-          getEink().einkTextDynamic(true);
-          getEink().refresh();
+          EINK().einkTextDynamic(true);
+          EINK().refresh();
         }
         break;
       case WIZ0:
         display.setFullWindow();
-        getEink().einkTextDynamic(true, true);      
+        EINK().einkTextDynamic(true, true);      
         display.setFont(&FreeMonoBold9pt7b);
         
         display.fillRect(0,display.height()-26,display.width(),26,GxEPD_WHITE);
         display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
         display.setCursor(4, display.height()-6);
-        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(getEink().countLines(allText)));
+        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(EINK().countLines(allText)));
         display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
 
         display.fillRect(60,0,200,218,GxEPD_WHITE);
@@ -530,7 +530,7 @@ void einkHandler_TXT_NEW() {
           display.print(filesList[i]);
         }
 
-        getEink().refresh();
+        EINK().refresh();
         CurrentKBState = FUNC;
         break;
       case WIZ1:
@@ -539,13 +539,13 @@ void einkHandler_TXT_NEW() {
         display.fillRect(0,display.height()-26,display.width(),26,GxEPD_WHITE);
         display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
         display.setCursor(4, display.height()-6);
-        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(getEink().countLines(allText)));
+        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(EINK().countLines(allText)));
         display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
 
         display.fillRect(60,0,200,218,GxEPD_WHITE);
         display.drawBitmap(60,0,fileWizLiteallArray[1],200,218, GxEPD_BLACK);
 
-        getEink().refresh();
+        EINK().refresh();
         CurrentKBState = FUNC;
         break;
       case WIZ2:
@@ -554,37 +554,37 @@ void einkHandler_TXT_NEW() {
         display.fillRect(0,display.height()-26,display.width(),26,GxEPD_WHITE);
         display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
         display.setCursor(4, display.height()-6);
-        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(getEink().countLines(allText)));
+        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(EINK().countLines(allText)));
         display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
 
         display.fillRect(60,0,200,218,GxEPD_WHITE);
         display.drawBitmap(60,0,fileWizLiteallArray[2],200,218, GxEPD_BLACK);
 
-        getEink().refresh();
+        EINK().refresh();
         CurrentKBState = NORMAL;
         break;
       case WIZ3:
         display.setFullWindow();
-        getEink().einkTextDynamic(true, true);      
+        EINK().einkTextDynamic(true, true);      
         display.setFont(&FreeMonoBold9pt7b);
         
         display.fillRect(0,display.height()-26,display.width(),26,GxEPD_WHITE);
         display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
         display.setCursor(4, display.height()-6);
-        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(getEink().countLines(allText)));
+        //display.print("W:" + String(countWords(allText)) + " C:" + String(countVisibleChars(allText)) + " L:" + String(EINK().countLines(allText)));
         display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
 
         display.fillRect(60,0,200,218,GxEPD_WHITE);
         display.drawBitmap(60,0,fileWizLiteallArray[3],200,218, GxEPD_BLACK);
 
-        getEink().refresh();
+        EINK().refresh();
         CurrentKBState = NORMAL;
         break;
       case FONT:
         display.setFullWindow();
-        getEink().einkTextDynamic(true, true);      
+        EINK().einkTextDynamic(true, true);      
         
-        getEink().drawStatusBar("Select a Font (0-9)");
+        EINK().drawStatusBar("Select a Font (0-9)");
 
         display.fillRect(60,0,200,218,GxEPD_WHITE);
         display.drawBitmap(60,0,fontfont0,200,218, GxEPD_BLACK);
@@ -621,7 +621,7 @@ void einkHandler_TXT_NEW() {
           display.print("Font Number " + String(i+1));
         }
 
-        getEink().refresh();
+        EINK().refresh();
         CurrentKBState = FUNC;
         break;
     

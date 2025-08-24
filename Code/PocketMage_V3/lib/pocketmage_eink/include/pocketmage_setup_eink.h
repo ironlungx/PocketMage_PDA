@@ -8,4 +8,4 @@
 #pragma once
 class PocketmageEink;
 void wireEink();
-PocketmageEink& getEink();
+PocketmageEink& EINK();

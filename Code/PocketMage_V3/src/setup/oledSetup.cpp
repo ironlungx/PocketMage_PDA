@@ -34,9 +34,9 @@ void wireOled() {
     .setScrollBitmap(scrolloled0)
     .setReferenceWidth(display.width())
     .setMeasureTextWidth(einkMeasureWidth)
-    .setMaxCharsPerLineEinkGetter([]{ return getEink().maxCharsPerLine(); })
+    .setMaxCharsPerLineEinkGetter([]{ return EINK().maxCharsPerLine(); })
     .setClock(&rtc, &SYSTEM_CLOCK, &SHOW_YEAR, daysOfTheWeek);
 }
 
 // oled object reference for other apps
-PocketmageOled& getOled() { return oled; }
+PocketmageOled& OLED() { return oled; }

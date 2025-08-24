@@ -63,25 +63,25 @@ void commandSelect(String command) {
     String numStr = command.substring(6);
     int sides = numStr.toInt();
     if (sides < 1) {
-      getOled().oledWord("Please enter a valid number");
+      OLED().oledWord("Please enter a valid number");
       delay(2000);
     } 
     else if (sides == 1) {
-      getOled().oledWord("D1: you rolled a 1, duh!");
+      OLED().oledWord("D1: you rolled a 1, duh!");
       delay(2000);
     }
     else {
       int roll = (esp_random() % sides) + 1;
-      if (roll == sides)  getOled().oledWord("D" + String(sides) + ": " + String(roll) + "!!!");
-      else if (roll == 1) getOled().oledWord("D" + String(sides) + ": " + String(roll) + " :(");
-      else                getOled().oledWord("D" + String(sides) + ": " + String(roll));
+      if (roll == sides)  OLED().oledWord("D" + String(sides) + ": " + String(roll) + "!!!");
+      else if (roll == 1) OLED().oledWord("D" + String(sides) + ": " + String(roll) + " :(");
+      else                OLED().oledWord("D" + String(sides) + ": " + String(roll));
       delay(3000);
       CurrentKBState = NORMAL;
     }
   }
 
   else if (command == "home") {
-    getOled().oledWord("You're home, silly!");
+    OLED().oledWord("You're home, silly!");
     delay(1000);
   } 
   /////////////////////////////
@@ -119,31 +119,31 @@ void commandSelect(String command) {
   }
   /////////////////////////////
   else if (command == "i farted") {
-    getOled().oledWord("That smells");
+    OLED().oledWord("That smells");
     delay(1000);
   } 
   else if (command == "poop") {
-    getOled().oledWord("Yuck");
+    OLED().oledWord("Yuck");
     delay(1000);
   } 
   else if (command == "hello") {
-    getOled().oledWord("Hey, you!");
+    OLED().oledWord("Hey, you!");
     delay(1000);
   } 
   else if (command == "hi") {
-    getOled().oledWord("What's up?");
+    OLED().oledWord("What's up?");
     delay(1000);
   } 
   else if (command == "i love you") {
-    getOled().oledWord("luv u 2 <3");
+    OLED().oledWord("luv u 2 <3");
     delay(1000);
   } 
   else if (command == "what can you do") {
-    getOled().oledWord("idk man");
+    OLED().oledWord("idk man");
     delay(1000);
   } 
   else if (command == "alexa") {
-    getOled().oledWord("...");
+    OLED().oledWord("...");
     delay(1000);
   } 
   else {
@@ -179,7 +179,7 @@ void drawHome() {
   }
   display.setFont(&FreeMonoBold9pt7b);
 
-  getEink().drawStatusBar("Type a Command:");
+  EINK().drawStatusBar("Type a Command:");
 }
 
 void drawThickLine(int x0, int y0, int x1, int y1, int thickness) {
@@ -254,7 +254,7 @@ void processKB_HOME() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentLine, false);
+          OLED().oledLine(currentLine, false);
         }
       }
       break;
@@ -276,8 +276,8 @@ void einkHandler_HOME() {
       if (newState) {
         newState = false;
         drawHome();
-        getEink().refresh();
-        //getEink().multiPassRefesh(2);
+        EINK().refresh();
+        //EINK().multiPassRefesh(2);
       }
       break;
 
@@ -330,8 +330,8 @@ void einkHandler_HOME() {
           }
         }
 
-        getEink().forceSlowFullUpdate(true);
-        getEink().refresh();
+        EINK().forceSlowFullUpdate(true);
+        EINK().refresh();
       }
       break;
   }

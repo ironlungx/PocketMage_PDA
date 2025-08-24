@@ -8,4 +8,4 @@
 #pragma once
 class PocketmageOled;
 void wireOled();
-PocketmageOled& getOled();
+PocketmageOled& OLED();

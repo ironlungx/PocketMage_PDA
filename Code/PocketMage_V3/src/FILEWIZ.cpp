@@ -5,8 +5,7 @@
 //   888    "     888   888          888    "        `888.8'  `888.8'      888     .888P       //
 //   888          888   888       o  888       o      `888'    `888'       888    d888'    .P  //
 //  o888o        o888o o888ooooood8 o888ooooood8       `8'      `8'       o888o .8888888888P   //
-#include <pocketmage.h>
-
+#include "globals.h"
 
 enum FileWizState { WIZ0_, WIZ1_, WIZ1_YN, WIZ2_R, WIZ2_C, WIZ3_ };
 FileWizState CurrentFileWizState = WIZ0_;
@@ -17,7 +16,7 @@ static String currentLine = "";
 void FILEWIZ_INIT() {
   CurrentAppState = FILEWIZ;
   CurrentKBState  = FUNC;
-  getEink().forceSlowFullUpdate(true);
+  forceSlowFullUpdate = true;
   newState = true;
 }
 
@@ -60,7 +59,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          oledLine(currentWord, false);
         }
         KBBounceMillis = currentMillis;
       }
@@ -107,7 +106,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          oledLine(currentWord, false);
         }
         KBBounceMillis = currentMillis;
       }
@@ -150,7 +149,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          oledLine(currentWord, false);
         }
         KBBounceMillis = currentMillis;
       }
@@ -222,7 +221,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          oledLine(currentWord, false);
         }
       }
       break;
@@ -293,7 +292,7 @@ void processKB_FILEWIZ() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentWord, false);
+          oledLine(currentWord, false);
         }
       }
       break;
@@ -311,7 +310,7 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("Select a File (0-9)");
+        drawStatusBar("Select a File (0-9)");
         display.drawBitmap(0, 0, fileWizardallArray[0], 320, 218, GxEPD_BLACK);
 
         // DRAW FILE LIST
@@ -324,7 +323,7 @@ void einkHandler_FILEWIZ() {
           display.print(filesList[i]);
         }
 
-        getEink().refresh();
+        refresh();
       }
       break;
     case WIZ1_:
@@ -335,10 +334,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("- " + workingFile);
+        drawStatusBar("- " + workingFile);
         display.drawBitmap(0, 0, fileWizardallArray[1], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        refresh();
       }
       break;
     case WIZ1_YN:
@@ -349,10 +348,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("DEL:" + workingFile + "?(Y/N)");
+        drawStatusBar("DEL:" + workingFile + "?(Y/N)");
         display.drawBitmap(0, 0, fileWizardallArray[1], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        refresh();
       }
       break;
     case WIZ2_R:
@@ -363,10 +362,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("Enter New Filename:");
+        drawStatusBar("Enter New Filename:");
         display.drawBitmap(0, 0, fileWizardallArray[2], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        refresh();
       }
       break;
     case WIZ2_C:
@@ -377,10 +376,10 @@ void einkHandler_FILEWIZ() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("Enter Name For Copy:");
+        drawStatusBar("Enter Name For Copy:");
         display.drawBitmap(0, 0, fileWizardallArray[2], 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        refresh();
       }
       break;
   }

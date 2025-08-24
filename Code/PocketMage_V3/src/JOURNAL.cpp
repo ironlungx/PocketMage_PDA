@@ -1,4 +1,4 @@
-#include <pocketmage.h>
+#include "globals.h"
 
 enum JournalState {J_MENU, J_TXT};
 JournalState CurrentJournalState = J_MENU;
@@ -11,7 +11,7 @@ static volatile bool doFull = false;
 void JOURNAL_INIT() {
   CurrentAppState = JOURNAL;
   CurrentJournalState = J_MENU;
-  getEink().forceSlowFullUpdate(true);
+  forceSlowFullUpdate = true;
   newState = true;
   CurrentKBState = NORMAL;
   bufferEditingFile = editingFile;
@@ -39,7 +39,7 @@ void drawJMENU() {
   delay(50);
 
   // Display background
-  getEink().drawStatusBar("Type:YYYYMMDD or (T)oday");
+  drawStatusBar("Type:YYYYMMDD or (T)oday");
   display.drawBitmap(0, 0, _journal, 320, 218, GxEPD_BLACK);
 
   // Update current progress graph
@@ -301,7 +301,7 @@ void processKB_JOURNAL() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentLine, false);
+          oledLine(currentLine, false);
         }
       }
       break;
@@ -310,7 +310,7 @@ void processKB_JOURNAL() {
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
       inchar = updateKeypress();
       // SET MAXIMUMS AND FONT
-      getEink().setTXTFont(getEink().getCurrentFont());
+      setTXTFont(currentFont);
 
       // UPDATE SCROLLBAR
       updateScrollFromTouch();
@@ -349,7 +349,7 @@ void processKB_JOURNAL() {
       else if (inchar == 20) {                                  
         allLines.clear();
         currentLine = "";
-        getOled().oledWord("Clearing...");
+        oledWord("Clearing...");
         doFull = true;
         newLineAdded = true;
         delay(300);
@@ -394,10 +394,10 @@ void processKB_JOURNAL() {
         OLEDFPSMillis = currentMillis;
         // ONLY SHOW OLEDLINE WHEN NOT IN SCROLL MODE
         if (lastTouch == -1) {
-          getOled().oledLine(currentLine);
+          oledLine(currentLine);
           if (prev_dynamicScroll != dynamicScroll) prev_dynamicScroll = dynamicScroll;
         }
-        else getOled().oledScroll();
+        else oledScroll();
       }
 
       if (currentLine.length() > 0) {
@@ -445,17 +445,17 @@ void einkHandler_JOURNAL() {
 
         drawJMENU();
 
-        getEink().multiPassRefesh(2);
+        multiPassRefesh(2);
       }
       break;
     case J_TXT:
       if (newState && doFull) {
         display.fillScreen(GxEPD_WHITE);
-        getEink().refresh();
+        refresh();
       }
       if (newLineAdded && !newState) {
-        getEink().einkTextDynamic(true);
-        getEink().refresh();
+        einkTextDynamic(true);
+        refresh();
       }
 
       newState = false;

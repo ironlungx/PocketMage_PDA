@@ -5,7 +5,7 @@
 //       `"Y88b     `888'          `"Y88b      888       888    "     8  `888'   888   //
 //  oo     .d8P      888      oo     .d8P      888       888       o  8    Y     888   //
 //  8""88888P'      o888o     8""88888P'      o888o     o888ooooood8 o8o        o888o  //
-#include <pocketmage.h>
+#include "globals.h"
 
 uint8_t fileIndex = 0;
 String excludedFiles[3] = { "/temp.txt", "/settings.txt", "/tasks.txt" };
@@ -27,7 +27,7 @@ int countVisibleChars(String input) {
 
 void saveFile() {
   if (noSD) {
-    getOled().oledWord("SAVE FAILED - No SD!");
+    oledWord("SAVE FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -44,9 +44,9 @@ void saveFile() {
     if (editingFile == "" || editingFile == "-") editingFile = "/temp.txt";
     keypad.disableInterrupts();
     if (!editingFile.startsWith("/")) editingFile = "/" + editingFile;
-    //getOled().oledWord("Saving File: "+ editingFile);
+    //oledWord("Saving File: "+ editingFile);
     writeFile(SD_MMC, (editingFile).c_str(), textToSave.c_str());
-    //getOled().oledWord("Saved: "+ editingFile);
+    //oledWord("Saved: "+ editingFile);
 
     // Write MetaData
     writeMetadata(editingFile);
@@ -124,7 +124,7 @@ void writeMetadata(const String& path) {
 
 void loadFile(bool showOLED) {
   if (noSD) {
-    getOled().oledWord("LOAD FAILED - No SD!");
+    oledWord("LOAD FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -134,7 +134,7 @@ void loadFile(bool showOLED) {
     delay(50);
 
     keypad.disableInterrupts();
-    if (showOLED) getOled().oledWord("Loading File");
+    if (showOLED) oledWord("Loading File");
     if (!editingFile.startsWith("/")) editingFile = "/" + editingFile;
     String textToLoad = readFileToString(SD_MMC, (editingFile).c_str());
     if (DEBUG_VERBOSE) {
@@ -144,7 +144,7 @@ void loadFile(bool showOLED) {
     stringToVector(textToLoad);
     keypad.enableInterrupts();
     if (showOLED) {
-      getOled().oledWord("File Loaded");
+      oledWord("File Loaded");
       delay(200);
     }
     if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
@@ -154,7 +154,7 @@ void loadFile(bool showOLED) {
 
 void delFile(String fileName) {
   if (noSD) {
-    getOled().oledWord("DELETE FAILED - No SD!");
+    oledWord("DELETE FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -164,10 +164,10 @@ void delFile(String fileName) {
     delay(50);
 
     keypad.disableInterrupts();
-    //getOled().oledWord("Deleting File: "+ fileName);
+    //oledWord("Deleting File: "+ fileName);
     if (!fileName.startsWith("/")) fileName = "/" + fileName;
     deleteFile(SD_MMC, fileName.c_str());
-    //getOled().oledWord("Deleted: "+ fileName);
+    //oledWord("Deleted: "+ fileName);
 
     // Delete MetaData
     deleteMetadata(fileName);
@@ -219,7 +219,7 @@ void deleteMetadata(String path) {
 
 void renFile(String oldFile, String newFile) {
   if (noSD) {
-    getOled().oledWord("RENAME FAILED - No SD!");
+    oledWord("RENAME FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -229,11 +229,11 @@ void renFile(String oldFile, String newFile) {
     delay(50);
 
     keypad.disableInterrupts();
-    //getOled().oledWord("Renaming "+ oldFile + " to " + newFile);
+    //oledWord("Renaming "+ oldFile + " to " + newFile);
     if (!oldFile.startsWith("/")) oldFile = "/" + oldFile;
     if (!newFile.startsWith("/")) newFile = "/" + newFile;
     renameFile(SD_MMC, oldFile.c_str(), newFile.c_str());
-    getOled().oledWord(oldFile + " -> " + newFile);
+    oledWord(oldFile + " -> " + newFile);
     delay(1000);
 
     // Update MetaData
@@ -298,7 +298,7 @@ void renMetadata(String oldPath, String newPath) {
 
 void copyFile(String oldFile, String newFile) {
   if (noSD) {
-    getOled().oledWord("COPY FAILED - No SD!");
+    oledWord("COPY FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -308,12 +308,12 @@ void copyFile(String oldFile, String newFile) {
     delay(50);
 
     keypad.disableInterrupts();
-    getOled().oledWord("Loading File");
+    oledWord("Loading File");
     if (!oldFile.startsWith("/")) oldFile = "/" + oldFile;
     if (!newFile.startsWith("/")) newFile = "/" + newFile;
     String textToLoad = readFileToString(SD_MMC, (oldFile).c_str());
     writeFile(SD_MMC, (newFile).c_str(), textToLoad.c_str());
-    getOled().oledWord("Saved: "+ newFile);
+    oledWord("Saved: "+ newFile);
 
     // Write MetaData
     writeMetadata(newFile);
@@ -328,7 +328,7 @@ void copyFile(String oldFile, String newFile) {
 
 void appendToFile(String path, String inText) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -352,7 +352,7 @@ void appendToFile(String path, String inText) {
 
 String vectorToString() {
   String result;
-  getEink().setTXTFont(getEink().getCurrentFont());
+  setTXTFont(currentFont);
 
   for (size_t i = 0; i < allLines.size(); i++) {
     result += allLines[i];
@@ -371,7 +371,7 @@ String vectorToString() {
 }
 
 void stringToVector(String inputText) {
-  getEink().setTXTFont(getEink().getCurrentFont());
+  setTXTFont(currentFont);
   allLines.clear();
   String currentLine_;
 
@@ -512,6 +512,7 @@ char updateKeypress() {
 
   return 0;
 }
+
 void updateScrollFromTouch() {
   uint16_t touched = cap.touched();  // Read touch state
   int newTouch = -1;
@@ -535,7 +536,7 @@ void updateScrollFromTouch() {
     if (lastTouch != -1) {  // Compare with previous touch
       int touchDelta = abs(newTouch - lastTouch);
       if (touchDelta <= 2) {  // Ignore large jumps (adjust threshold if needed)
-        int maxScroll = max(0, (int)allLines.size() - getEink().maxLines());  // Ensure a valid scroll range
+        int maxScroll = max(0, (int)allLines.size() - maxLines);  // Ensure a valid scroll range
         if (newTouch > lastTouch) {
           dynamicScroll = min((int)(dynamicScroll + 1), maxScroll);
         } else if (newTouch < lastTouch) {
@@ -564,7 +565,7 @@ void setTimeFromString(String timeStr) {
     int minutes = timeStr.substring(3, 5).toInt();
 
     if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-      getOled().oledWord("Invalid");
+      oledWord("Invalid");
       delay(500);
       return;
     }
@@ -689,13 +690,13 @@ void checkTimeout() {
     if (timeoutMillis - prevTimeMillis >= TIMEOUT*1000) {
         Serial.println("Device Idle... Deep Sleeping");
         //Give a chance to keep device awake
-        getOled().oledWord("  Going to sleep!  ");
+        oledWord("  Going to sleep!  ");
         int i = millis();
         int j = millis();
         while ((j - i) <= 4000) {  //10 sec
           j = millis();
           if (digitalRead(KB_IRQ) == 0) {
-            getOled().oledWord("Good Save!");
+            oledWord("Good Save!");
             delay(500);
             prevTimeMillis = millis();
             keypad.flush();
@@ -710,9 +711,9 @@ void checkTimeout() {
         switch (CurrentAppState) {
           case TXT:
             if (SLEEPMODE == "TEXT" && editingFile != "") {
-              getEink().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
+              einkRefresh = FULL_REFRESH_AFTER + 1;
               display.setFullWindow();
-              getEink().einkTextDynamic(true, true);
+              einkTextDynamic(true, true);
                     
               display.setFont(&FreeMonoBold9pt7b);
               
@@ -720,7 +721,7 @@ void checkTimeout() {
               display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
               display.setCursor(4, display.height()-6);
               display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
-              getEink().statusBar(editingFile, true);
+              statusBar(editingFile, true);
               
               display.fillRect(320-86, 240-52, 87, 52, GxEPD_WHITE);
               display.drawBitmap(320-86, 240-52, sleep1, 87, 52, GxEPD_BLACK);
@@ -753,7 +754,7 @@ void checkTimeout() {
     PWR_BTN_event = false;
 
     // Save current work:
-    getOled().oledWord("Saving Work");
+    oledWord("Saving Work");
     saveFile();
 
     
@@ -786,16 +787,16 @@ void checkTimeout() {
       switch (CurrentAppState) {
         case TXT:
           if (SLEEPMODE == "TEXT" && editingFile != "") {
-            getEink().setFullRefreshAfter(FULL_REFRESH_AFTER + 1);
+            einkRefresh = FULL_REFRESH_AFTER + 1;
             display.setFullWindow();
-            getEink().einkTextDynamic(true, true);    
+            einkTextDynamic(true, true);    
             display.setFont(&FreeMonoBold9pt7b);
             
             display.fillRect(0,display.height()-26,display.width(),26,GxEPD_WHITE);
             display.drawRect(0,display.height()-20,display.width(),20,GxEPD_BLACK);
             display.setCursor(4, display.height()-6);
             display.drawBitmap(display.width()-30,display.height()-20, KBStatusallArray[6], 30, 20, GxEPD_BLACK);
-            getEink().statusBar(editingFile, true);
+            statusBar(editingFile, true);
             
             display.fillRect(320-86, 240-52, 87, 52, GxEPD_WHITE);
             display.drawBitmap(320-86, 240-52, sleep1, 87, 52, GxEPD_BLACK);
@@ -829,12 +830,12 @@ void checkTimeout() {
       OLEDPowerSave = false;
     }
     display.fillScreen(GxEPD_WHITE);
-    getEink().forceSlowFullUpdate(true);
+    forceSlowFullUpdate = true;
 
     // Play startup jingle
     playJingle("startup");
 
-    getEink().refresh();
+    refresh();
     delay(200);
     newState = true;
   }
@@ -860,12 +861,12 @@ void deepSleep(bool alternateScreenSaver) {
     //display.setPartialWindow(0, 0, 320, 60);
     display.setFullWindow();
     display.drawBitmap(0, 0, ScreenSaver_allArray[randomScreenSaver_], 320, 240, GxEPD_BLACK);
-    getEink().multiPassRefesh(2);
+    multiPassRefesh(2);
   }
   else {
     // Display alternate screensaver
-    getEink().forceSlowFullUpdate(true);
-    getEink().refresh();
+    forceSlowFullUpdate = true;
+    refresh();
     delay(100);
   }
 
@@ -950,7 +951,7 @@ void loadState(bool changeState) {
 // Low-Level SDMMC Operations
 void listDir(fs::FS &fs, const char *dirname) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -1008,7 +1009,7 @@ void listDir(fs::FS &fs, const char *dirname) {
 
 void readFile(fs::FS &fs, const char *path) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -1036,7 +1037,7 @@ void readFile(fs::FS &fs, const char *path) {
 
 String readFileToString(fs::FS &fs, const char *path) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return "";
   }
@@ -1050,7 +1051,7 @@ String readFileToString(fs::FS &fs, const char *path) {
     File file = fs.open(path);
     if (!file || file.isDirectory()) {
       Serial.println("- failed to open file for reading");
-      getOled().oledWord("Load Failed");
+      oledWord("Load Failed");
       delay(500);
       return "";  // Return an empty string on failure
     }
@@ -1063,7 +1064,7 @@ String readFileToString(fs::FS &fs, const char *path) {
     }
 
     file.close();
-    getEink().setFullRefreshAfter(FULL_REFRESH_AFTER); //Force a full refresh
+    einkRefresh = FULL_REFRESH_AFTER; //Force a full refresh
     noTimeout = false;
     return content;  // Return the complete String
   }
@@ -1071,7 +1072,7 @@ String readFileToString(fs::FS &fs, const char *path) {
 
 void writeFile(fs::FS &fs, const char *path, const char *message) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -1101,7 +1102,7 @@ void writeFile(fs::FS &fs, const char *path, const char *message) {
 
 void appendFile(fs::FS &fs, const char *path, const char *message) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -1130,7 +1131,7 @@ void appendFile(fs::FS &fs, const char *path, const char *message) {
 
 void renameFile(fs::FS &fs, const char *path1, const char *path2) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return;
   }
@@ -1152,7 +1153,7 @@ void renameFile(fs::FS &fs, const char *path1, const char *path2) {
 
 void deleteFile(fs::FS &fs, const char *path) {
   if (noSD) {
-    getOled().oledWord("OP FAILED - No SD!");
+    oledWord("OP FAILED - No SD!");
     delay(5000);
     return;
   }

@@ -1,5 +1,4 @@
-#include <pocketmage.h>
-
+#include "globals.h"
 
 enum LexState {MENU, DEF};
 LexState CurrentLexState = MENU;
@@ -21,7 +20,7 @@ void LEXICON_INIT() {
 }
 
 void loadDefinitions(String word) {
-  getOled().oledWord("Loading Definitions");
+  oledWord("Loading Definitions");
   SDActive = true;
   setCpuFrequencyMhz(240);
   delay(50);
@@ -37,7 +36,7 @@ void loadDefinitions(String word) {
 
   File file = SD_MMC.open(filePath);
   if (!file) {
-    getOled().oledWord("Missing Dictionary!");
+    oledWord("Missing Dictionary!");
     delay(2000);
     return;
   }
@@ -72,7 +71,7 @@ void loadDefinitions(String word) {
   file.close();
 
   if (defList.empty()) {
-    getOled().oledWord("No definitions found");
+    oledWord("No definitions found");
     delay(2000);
   }
   else {
@@ -144,7 +143,7 @@ void processKB_LEXICON() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentLine, false);
+          oledLine(currentLine, false);
         }
       }
       break;
@@ -217,7 +216,7 @@ void processKB_LEXICON() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentLine, false);
+          oledLine(currentLine, false);
         }
       }
       break;
@@ -232,9 +231,9 @@ void einkHandler_LEXICON() {
 
         display.drawBitmap(0, 0, _lex0, 320, 218, GxEPD_BLACK);
 
-        getEink().drawStatusBar("Type a Word:");
+        drawStatusBar("Type a Word:");
 
-        getEink().multiPassRefesh(2);
+        multiPassRefesh(2);
       }
       break;
     case DEF:
@@ -256,10 +255,10 @@ void einkHandler_LEXICON() {
         // ADD WORD WRAP
         display.print(defList[definitionIndex].second);
 
-        getEink().drawStatusBar("Type a New Word:");
+        drawStatusBar("Type a New Word:");
 
-        getEink().forceSlowFullUpdate(true);
-        getEink().refresh();
+        forceSlowFullUpdate = true;
+        refresh();
       }
       break;
   }

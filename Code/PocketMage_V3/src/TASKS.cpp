@@ -5,7 +5,7 @@
 //      888        .88ooo8888.        `"Y88b  888`88b.         `"Y88b //
 //      888       .8'     `888.  oo     .d8P  888  `88b.  oo     .d8P //
 //     o888o     o88o     o8888o 8""88888P'  o888o  o888o 8""88888P'  //  
-#include <pocketmage.h>
+#include "globals.h"   
 
 enum TasksState { TASKS0, TASKS0_NEWTASK, TASKS1, TASKS1_EDITTASK };
 TasksState CurrentTasksState = TASKS0;
@@ -21,7 +21,7 @@ uint8_t selectedTask = 0;
 void TASKS_INIT() {
   CurrentAppState = TASKS;
   CurrentTasksState = TASKS0;
-  getEink().forceSlowFullUpdate(true);
+  forceSlowFullUpdate = true;
   newState = true;
 }
 
@@ -170,7 +170,7 @@ void processKB_TASKS() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledWord(currentWord);
+          oledWord(currentWord);
         }
         KBBounceMillis = currentMillis;
       }
@@ -225,7 +225,7 @@ void processKB_TASKS() {
 
                 // ADD NEW TASK
                 addTask(newTaskName, newTaskDueDate, "0", "0");
-                getOled().oledWord("New Task Added");
+                oledWord("New Task Added");
                 delay(1000);
 
                 // RETURN
@@ -236,7 +236,7 @@ void processKB_TASKS() {
               }
               // DATE IS INVALID
               else {
-                getOled().oledWord("Invalid Date");
+                oledWord("Invalid Date");
                 delay(1000);
                 currentLine = "";
               }
@@ -256,7 +256,7 @@ void processKB_TASKS() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledLine(currentLine, false);
+          oledLine(currentLine, false);
         }
       }
       break;
@@ -273,7 +273,7 @@ void processKB_TASKS() {
         //BKSP Recieved
         else if (inchar == 127 || inchar == 8 || inchar == 12) {
           CurrentTasksState = TASKS0;
-          getEink().forceSlowFullUpdate(true);
+          forceSlowFullUpdate = true;
           newState = true;
           break;
         }
@@ -290,7 +290,7 @@ void processKB_TASKS() {
             updateTasksFile();
             
             CurrentTasksState = TASKS0;
-            getEink().forceSlowFullUpdate(true);
+            forceSlowFullUpdate = true;
             newState = true;
           }
           else if (inchar == '4') { // COPY TASK
@@ -303,7 +303,7 @@ void processKB_TASKS() {
         //Make sure oled only updates at 60fps
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          getOled().oledWord(currentWord);
+          oledWord(currentWord);
         }
         KBBounceMillis = currentMillis;
       }
@@ -331,7 +331,7 @@ void einkHandler_TASKS() {
         if (!tasks.empty()) {
           if (DEBUG_VERBOSE) Serial.println("Printing Tasks");
 
-          getEink().drawStatusBar("Select (0-9),New Task (N)");
+          drawStatusBar("Select (0-9),New Task (N)");
 
           int loopCount = std::min((int)tasks.size(), MAX_FILES);
           for (int i = 0; i < loopCount; i++) {
@@ -345,9 +345,9 @@ void einkHandler_TASKS() {
             Serial.print(tasks[i][0].c_str()); Serial.println(convertDateFormat(tasks[i][1]).c_str());
           }
         }
-        else getEink().drawStatusBar("No Tasks! Add New Task (N)");
+        else drawStatusBar("No Tasks! Add New Task (N)");
 
-        getEink().refresh();
+        refresh();
       }
       break;
       case TASKS0_NEWTASK:
@@ -381,14 +381,14 @@ void einkHandler_TASKS() {
           }
           switch (newTaskState) {
             case 0:
-              getEink().drawStatusBar("Enter Task Name:");
+              drawStatusBar("Enter Task Name:");
               break;
             case 1:
-              getEink().drawStatusBar("Due Date (YYYYMMDD):");
+              drawStatusBar("Due Date (YYYYMMDD):");
               break;
           }
 
-          getEink().refresh();
+          refresh();
         }
         break;
     case TASKS1:
@@ -399,10 +399,10 @@ void einkHandler_TASKS() {
         display.fillScreen(GxEPD_WHITE);
 
         // DRAW APP
-        getEink().drawStatusBar("T:" + tasks[selectedTask][0]);
+        drawStatusBar("T:" + tasks[selectedTask][0]);
         display.drawBitmap(0, 0, tasksApp1, 320, 218, GxEPD_BLACK);
 
-        getEink().refresh();
+        refresh();
       }
       break;
     

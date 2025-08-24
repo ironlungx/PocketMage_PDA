@@ -1,4 +1,10 @@
-#include "globals.h"
+
+#include <pocketmage.h>
+
+enum CalendarState { WEEK, MONTH, NEW_EVENT, VIEW_EVENT, SUN, MON, TUE, WED, THU, FRI, SAT };
+CalendarState CurrentCalendarState = MONTH;
+
+static String currentLine = "";
 
 int monthOffsetCount = 0;
 int weekOffsetCount = 0;
@@ -262,7 +268,7 @@ void commandSelectMonth(String command) {
       if (prefix == monthNames[i]) {
         int yearInt = stringToInt(yearPart);
         if (yearInt == -1 || yearInt < 1970 || yearInt > 2200) {
-          oledWord("Invalid");
+          getOled().oledWord("Invalid");
           delay(500);
           return;
         }
@@ -289,7 +295,7 @@ void commandSelectMonth(String command) {
     int date = command.substring(6, 8).toInt();
 
     if (year < 1970 || year > 2200 || month < 1 || month > 12 || date < 1 || date > daysInMonth(month, year)) {
-      oledWord("Invalid");
+      getOled().oledWord("Invalid");
       delay(500);
       return;
     }
@@ -339,7 +345,7 @@ void commandSelectMonth(String command) {
     int intDay = stringToPositiveInt(command);
     DateTime now = rtc.now();
     if (intDay == -1 || intDay > daysInMonth(currentMonth, currentYear)) {
-      oledWord("Invalid");
+      getOled().oledWord("Invalid");
       delay(500);
       return;
     }
@@ -709,7 +715,7 @@ void drawCalendarMonth(int monthOffset) {
   currentYear = year;
 
   // Draw Background
-  drawStatusBar(getMonthName(currentMonth) + " " + String(currentYear)+ " | Type a Date:");
+  getEink().drawStatusBar(getMonthName(currentMonth) + " " + String(currentYear)+ " | Type a Date:");
   display.drawBitmap(0, 0, calendar_allArray[1], 320, 218, GxEPD_BLACK);
 
   // Step 2: Day of the week for the 1st of the month (0 = Sun, 6 = Sat)
@@ -788,7 +794,7 @@ void drawCalendarMonth(int monthOffset) {
 }
 
 void drawCalendarWeek(int weekOffset) {
-  drawStatusBar("Type Sun, etc. or (N)ew");
+  getEink().drawStatusBar("Type Sun, etc. or (N)ew");
   display.drawBitmap(0, 0, calendar_allArray[0], 320, 218, GxEPD_BLACK);
 
   // Get current date
@@ -942,7 +948,7 @@ void processKB_CALENDAR() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          oledLine(currentLine, false);
+          getOled().oledLine(currentLine, false);
         }
       }
       break;
@@ -1015,7 +1021,7 @@ void processKB_CALENDAR() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          oledLine(currentLine, false);
+          getOled().oledLine(currentLine, false);
         }
       }
       break;
@@ -1046,7 +1052,7 @@ void processKB_CALENDAR() {
                 newEventState++;
                 currentLine = newEventStartDate;
               } else {
-                oledWord("Error: Empty event name");
+                getOled().oledWord("Error: Empty event name");
                 delay(2000);
                 currentLine = "";
               }
@@ -1059,7 +1065,7 @@ void processKB_CALENDAR() {
                 newEventState++;
                 currentLine = "";
               } else {
-                oledWord("Error: Invalid date (YYYYMMDD)");
+                getOled().oledWord("Error: Invalid date (YYYYMMDD)");
                 delay(2000);
                 currentLine = "";
               }
@@ -1074,7 +1080,7 @@ void processKB_CALENDAR() {
                 newEventState++;
                 currentLine = "";
               } else {
-                oledWord("Error: Invalid time (HH:MM)");
+                getOled().oledWord("Error: Invalid time (HH:MM)");
                 delay(2000);
                 currentLine = "";
               }
@@ -1092,7 +1098,7 @@ void processKB_CALENDAR() {
                   newEventState++;
                   currentLine = "";
                 } else {
-                  oledWord("Error: Invalid duration (H:MM)");
+                  getOled().oledWord("Error: Invalid duration (H:MM)");
                   delay(2000);
                   currentLine = "";
                 }
@@ -1106,7 +1112,7 @@ void processKB_CALENDAR() {
                 code.toUpperCase();
                 if (code == "HELP") {
                   // Display help screen here
-                  oledWord("Help screen coming soon!");
+                  getOled().oledWord("Help screen coming soon!");
                   delay(5000);
                   currentLine = "";
                 } else if (code == "NO" || code == "DAILY" ||
@@ -1117,7 +1123,7 @@ void processKB_CALENDAR() {
                   newEventState++;
                   currentLine = "";
                 } else {
-                  oledWord("Error: Invalid repeat value");
+                  getOled().oledWord("Error: Invalid repeat value");
                   delay(2000);
                   currentLine = "";
                 }
@@ -1143,7 +1149,7 @@ void processKB_CALENDAR() {
                       newEventNote 
                     );
             // Return to app
-            oledWord("New Event \"" + newEventName + "\" Created");
+            getOled().oledWord("New Event \"" + newEventName + "\" Created");
             delay(2000);
             CurrentCalendarState = MONTH;
             CurrentKBState = NORMAL;
@@ -1184,22 +1190,22 @@ void processKB_CALENDAR() {
           OLEDFPSMillis = currentMillis;
           switch(newEventState) {
             case 0:
-              oledLine(currentLine, false, "Enter the Event Name");
+              getOled().oledLine(currentLine, false, "Enter the Event Name");
               break;
             case 1:
-              oledLine(currentLine, false, "Enter the Start Date (YYYYMMDD)");
+              getOled().oledLine(currentLine, false, "Enter the Start Date (YYYYMMDD)");
               break;
             case 2:
-              oledLine(currentLine, false, "Enter the Start Time (HH:MM)");
+              getOled().oledLine(currentLine, false, "Enter the Start Time (HH:MM)");
               break;
             case 3:
-              oledLine(currentLine, false, "Enter the Event Duration (HH:MM)");
+              getOled().oledLine(currentLine, false, "Enter the Event Duration (HH:MM)");
               break;
             case 4:
-              oledLine(currentLine, false, "Enter the Repeat Code or \"Help\"");
+              getOled().oledLine(currentLine, false, "Enter the Repeat Code or \"Help\"");
               break;
             case 5:
-              oledLine(currentLine, false, "Attach a Note to the Event");
+              getOled().oledLine(currentLine, false, "Attach a Note to the Event");
               break;
           }
         }
@@ -1243,7 +1249,7 @@ void processKB_CALENDAR() {
               else if (currentLine == "d" || currentLine == "D") {
                 deleteEventByIndex(editingEventIndex);
                 updateEventsFile();
-                oledWord("Event : \"" + newEventName + "\" Deleted");
+                getOled().oledWord("Event : \"" + newEventName + "\" Deleted");
                 delay(2000);
                 CurrentCalendarState = MONTH;
                 currentLine     = "";
@@ -1253,7 +1259,7 @@ void processKB_CALENDAR() {
               else if (currentLine == "s" || currentLine == "S") {
                 updateEventByIndex(editingEventIndex);
                 updateEventsFile();
-                oledWord("Event : \"" + newEventName + "\" Edited");
+                getOled().oledWord("Event : \"" + newEventName + "\" Edited");
                 delay(2000);
                 CurrentCalendarState = MONTH;
                 currentLine     = "";
@@ -1269,7 +1275,7 @@ void processKB_CALENDAR() {
                 currentLine = "";
                 newEventState = -1;
               } else {
-                oledWord("Error: Empty event name");
+                getOled().oledWord("Error: Empty event name");
                 delay(2000);
                 currentLine = "";
               }
@@ -1282,7 +1288,7 @@ void processKB_CALENDAR() {
                 currentLine = "";
                 newEventState = -1;
               } else {
-                oledWord("Error: Invalid date (YYYYMMDD)");
+                getOled().oledWord("Error: Invalid date (YYYYMMDD)");
                 delay(2000);
                 currentLine = "";
               }
@@ -1297,7 +1303,7 @@ void processKB_CALENDAR() {
                 currentLine = "";
                 newEventState = -1;
               } else {
-                oledWord("Error: Invalid time (HH:MM)");
+                getOled().oledWord("Error: Invalid time (HH:MM)");
                 delay(2000);
                 currentLine = "";
               }
@@ -1315,7 +1321,7 @@ void processKB_CALENDAR() {
                   currentLine = "";
                   newEventState = -1;
                 } else {
-                  oledWord("Error: Invalid duration (H:MM)");
+                  getOled().oledWord("Error: Invalid duration (H:MM)");
                   delay(2000);
                   currentLine = "";
                 }
@@ -1329,7 +1335,7 @@ void processKB_CALENDAR() {
                 code.toUpperCase();
                 if (code == "HELP") {
                   // Display help screen here
-                  oledWord("Help screen coming soon!");
+                  getOled().oledWord("Help screen coming soon!");
                   delay(5000);
                   currentLine = "";
                 } else if (code == "NO" || code == "DAILY" ||
@@ -1340,7 +1346,7 @@ void processKB_CALENDAR() {
                   currentLine = "";
                   newEventState = -1;
                 } else {
-                  oledWord("Error: Invalid repeat value");
+                  getOled().oledWord("Error: Invalid repeat value");
                   delay(2000);
                   currentLine = "";
                 }
@@ -1366,7 +1372,7 @@ void processKB_CALENDAR() {
                       newEventNote 
                     );
             // Return to app
-            oledWord("New Event \"" + newEventName + "\" Created");
+            getOled().oledWord("New Event \"" + newEventName + "\" Created");
             delay(2000);
             CurrentCalendarState = MONTH;
             CurrentKBState = NORMAL;
@@ -1407,25 +1413,25 @@ void processKB_CALENDAR() {
           OLEDFPSMillis = currentMillis;
           switch(newEventState) {
             case -1:
-              oledLine(currentLine, false);
+              getOled().oledLine(currentLine, false);
               break;
             case 0:
-              oledLine(currentLine, false, "Enter the Event Name");
+              getOled().oledLine(currentLine, false, "Enter the Event Name");
               break;
             case 1:
-              oledLine(currentLine, false, "Enter the Start Date (YYYYMMDD)");
+              getOled().oledLine(currentLine, false, "Enter the Start Date (YYYYMMDD)");
               break;
             case 2:
-              oledLine(currentLine, false, "Enter the Start Time (HH:MM)");
+              getOled().oledLine(currentLine, false, "Enter the Start Time (HH:MM)");
               break;
             case 3:
-              oledLine(currentLine, false, "Enter the Event Duration (HH:MM)");
+              getOled().oledLine(currentLine, false, "Enter the Event Duration (HH:MM)");
               break;
             case 4:
-              oledLine(currentLine, false, "Enter the Repeat Code or \"Help\"");
+              getOled().oledLine(currentLine, false, "Enter the Repeat Code or \"Help\"");
               break;
             case 5:
-              oledLine(currentLine, false, "Attach a Note to the Event");
+              getOled().oledLine(currentLine, false, "Attach a Note to the Event");
               break;
           }
         }
@@ -1551,7 +1557,7 @@ void processKB_CALENDAR() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          oledLine(currentLine, false);
+          getOled().oledLine(currentLine, false);
         }
       }
       break;
@@ -1571,9 +1577,9 @@ void einkHandler_CALENDAR() {
         // DRAW APP
         drawCalendarWeek(weekOffsetCount);
 
-        forceSlowFullUpdate = true;
-        refresh();
-        //multiPassRefesh(2);
+        getEink().forceSlowFullUpdate(true);
+        getEink().refresh();
+        //getEink().multiPassRefesh(2);
       }
       break;
     case MONTH:
@@ -1586,9 +1592,9 @@ void einkHandler_CALENDAR() {
         // DRAW APP
         drawCalendarMonth(monthOffsetCount);
 
-        forceSlowFullUpdate = true;
-        refresh();
-        //multiPassRefesh(2);
+        getEink().forceSlowFullUpdate(true);
+        getEink().refresh();
+        //getEink().multiPassRefesh(2);
       }
       break;
     case NEW_EVENT:
@@ -1620,8 +1626,8 @@ void einkHandler_CALENDAR() {
         display.setCursor(106, 178);
         display.print(newEventNote);
 
-        forceSlowFullUpdate = true;
-        refresh();
+        getEink().forceSlowFullUpdate(true);
+        getEink().refresh();
       }
       break;
     case VIEW_EVENT:
@@ -1633,10 +1639,10 @@ void einkHandler_CALENDAR() {
 
         switch(newEventState) {
           case -1:
-            drawStatusBar("Type 1-6,(D)elete,or (S)ave");
+            getEink().drawStatusBar("Type 1-6,(D)elete,or (S)ave");
             break;
           default:
-            drawStatusBar("Type the info!");
+            getEink().drawStatusBar("Type the info!");
             break;
         }
         display.drawBitmap(0, 0, calendar_allArray[3], 320, 218, GxEPD_BLACK);
@@ -1661,8 +1667,8 @@ void einkHandler_CALENDAR() {
         display.setCursor(106, 178);
         display.print(newEventNote);
 
-        forceSlowFullUpdate = true;
-        refresh();
+        getEink().forceSlowFullUpdate(true);
+        getEink().refresh();
       }
       break;
     // All days use the same basic code
@@ -1682,7 +1688,7 @@ void einkHandler_CALENDAR() {
         // Draw background
         // CurrentCalendarState enumerations somehow line up with calendar app bitmaps?
         // SUN = 4, SAT = 10
-        drawStatusBar("Events 1-7 or (N)ew");
+        getEink().drawStatusBar("Events 1-7 or (N)ew");
         display.drawBitmap(0, 0, calendar_allArray[CurrentCalendarState], 320, 218, GxEPD_BLACK);
 
         // Draw Date
@@ -1719,9 +1725,9 @@ void einkHandler_CALENDAR() {
           display.print(bottomInfo);
         }
 
-        forceSlowFullUpdate = true;
-        refresh();
-        //multiPassRefesh(2);
+        getEink().forceSlowFullUpdate(true);
+        getEink().refresh();
+        //getEink().multiPassRefesh(2);
       }
       break;
   }

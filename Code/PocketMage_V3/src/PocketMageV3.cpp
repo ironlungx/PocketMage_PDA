@@ -1,7 +1,7 @@
 // PocketMage V3.0
 // @Ashtf 2025
 
-#include "globals.h"
+#include <pocketmage.h>
 
 //        .o.       ooooooooo.   ooooooooo.    .oooooo..o  //
 //       .888.      `888   `Y88. `888   `Y88. d8P'    `Y8  //
@@ -11,6 +11,16 @@
 //   .8'     `888.   888          888         oo     .d8P  //
 //  o88o     o8888o o888o        o888o        8""88888P'   //
 
+void einkHandler(void* parameter) {
+  vTaskDelay(pdMS_TO_TICKS(250)); 
+  for (;;) {
+    applicationEinkHandler();
+
+    vTaskDelay(pdMS_TO_TICKS(50));
+    yield();
+  }
+}
+
 // ADD E-INK HANDLER APP SCRIPTS HERE
 void applicationEinkHandler() {
   switch (CurrentAppState) {
@@ -18,14 +28,7 @@ void applicationEinkHandler() {
       einkHandler_HOME();
       break;
     case TXT:
-      switch (TXT_APP_STYLE) {
-        case 0:
-          einkHandler_TXT();
-          break;
-        case 1:
-          einkHandler_TXT_NEW();
-          break;
-      }
+      einkHandler_TXT_NEW();
       break;
     case FILEWIZ:
       einkHandler_FILEWIZ();
@@ -62,14 +65,7 @@ void processKB() {
       processKB_HOME();
       break;
     case TXT:
-      switch (TXT_APP_STYLE) {
-        case 0:
-          processKB_TXT();
-          break;
-        case 1:
-          processKB_TXT_NEW();
-          break;
-      }
+      processKB_TXT_NEW();
       break;
     case FILEWIZ:
       processKB_FILEWIZ();
@@ -115,14 +111,16 @@ void setup() {
   SPI.begin(SPI_SCK, -1, SPI_MOSI, -1);
 
   // OLED SETUP
+
   u8g2.begin();
   u8g2.setBusClock(10000000);
   u8g2.setPowerSave(0);
   u8g2.clearBuffer();
   u8g2.sendBuffer();
+  wireOled();
 
   // SHOW "PocketMage" while DEVICE BOOTS
-  oledWord("   PocketMage   ", true, false);
+  getOled().oledWord("   PocketMage   ", true, false);
 
   // STARTUP JINGLE
   playJingle("startup");
@@ -134,7 +132,7 @@ void setup() {
   // KEYBOARD SETUP
   if (!keypad.begin(TCA8418_DEFAULT_ADDR, &Wire)) {
     Serial.println("Error Initializing the Keyboard");
-    oledWord("Keyboard INIT Failed");
+    getOled().oledWord("Keyboard INIT Failed");
     delay(1000);
     while (1);
   }
@@ -147,15 +145,15 @@ void setup() {
   SD_MMC.setPins(SD_CLK, SD_CMD, SD_D0);
   if (!SD_MMC.begin("/sdcard", true) || SD_MMC.cardType() == CARD_NONE) {
     Serial.println("MOUNT FAILED");
-    oledWord("SD Card Not Detected!");
+    getOled().oledWord("SD Card Not Detected!");
     delay(2000);
     if (ALLOW_NO_MICROSD) {
-      oledWord("All Work Will Be Lost!");
+      getOled().oledWord("All Work Will Be Lost!");
       delay(5000);
       noSD = true;
     }
     else {
-      oledWord("Insert SD Card and Reboot!");
+      getOled().oledWord("Insert SD Card and Reboot!");
       delay(5000);
       // Put OLED to sleep
       u8g2.setPowerSave(1);
@@ -192,6 +190,7 @@ void setup() {
   loadState();
 
   // EINK HANDLER SETUP
+  wireEink();
   display.init(115200);
   display.setRotation(3);
   display.setTextColor(GxEPD_BLACK);
@@ -222,7 +221,7 @@ void setup() {
   // MPR121 / SLIDER
   if (!cap.begin(MPR121_ADDR)) {
     Serial.println("TouchPad Failed");
-    oledWord("TouchPad Failed");
+    getOled().oledWord("TouchPad Failed");
     delay(1000);
   }
 

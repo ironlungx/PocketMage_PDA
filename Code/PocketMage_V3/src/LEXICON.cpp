@@ -1,4 +1,9 @@
-#include "globals.h"
+#include <pocketmage.h>
+
+enum LexState {MENU, DEF};
+LexState CurrentLexState = MENU;
+
+static String currentLine = "";
 
 // Vector to hold the definitions
 std::vector<std::pair<String, String>> defList;
@@ -15,7 +20,7 @@ void LEXICON_INIT() {
 }
 
 void loadDefinitions(String word) {
-  oledWord("Loading Definitions");
+  getOled().oledWord("Loading Definitions");
   SDActive = true;
   setCpuFrequencyMhz(240);
   delay(50);
@@ -31,7 +36,7 @@ void loadDefinitions(String word) {
 
   File file = SD_MMC.open(filePath);
   if (!file) {
-    oledWord("Missing Dictionary!");
+    getOled().oledWord("Missing Dictionary!");
     delay(2000);
     return;
   }
@@ -66,7 +71,7 @@ void loadDefinitions(String word) {
   file.close();
 
   if (defList.empty()) {
-    oledWord("No definitions found");
+    getOled().oledWord("No definitions found");
     delay(2000);
   }
   else {
@@ -138,7 +143,7 @@ void processKB_LEXICON() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          oledLine(currentLine, false);
+          getOled().oledLine(currentLine, false);
         }
       }
       break;
@@ -211,7 +216,7 @@ void processKB_LEXICON() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          oledLine(currentLine, false);
+          getOled().oledLine(currentLine, false);
         }
       }
       break;
@@ -226,9 +231,9 @@ void einkHandler_LEXICON() {
 
         display.drawBitmap(0, 0, _lex0, 320, 218, GxEPD_BLACK);
 
-        drawStatusBar("Type a Word:");
+        getEink().drawStatusBar("Type a Word:");
 
-        multiPassRefesh(2);
+        getEink().multiPassRefesh(2);
       }
       break;
     case DEF:
@@ -250,10 +255,10 @@ void einkHandler_LEXICON() {
         // ADD WORD WRAP
         display.print(defList[definitionIndex].second);
 
-        drawStatusBar("Type a New Word:");
+        getEink().drawStatusBar("Type a New Word:");
 
-        forceSlowFullUpdate = true;
-        refresh();
+        getEink().forceSlowFullUpdate(true);
+        getEink().refresh();
       }
       break;
   }

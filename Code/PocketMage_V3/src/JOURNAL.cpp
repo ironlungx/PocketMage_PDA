@@ -1,12 +1,17 @@
-#include "globals.h"
+#include <pocketmage.h>
+
+enum JournalState {J_MENU, J_TXT};
+JournalState CurrentJournalState = J_MENU;
 
 String currentJournal = "";
 String bufferEditingFile = editingFile;
+static String currentLine = "";
+static volatile bool doFull = false;
 
 void JOURNAL_INIT() {
   CurrentAppState = JOURNAL;
   CurrentJournalState = J_MENU;
-  forceSlowFullUpdate = true;
+  getEink().forceSlowFullUpdate(true);
   newState = true;
   CurrentKBState = NORMAL;
   bufferEditingFile = editingFile;
@@ -34,7 +39,7 @@ void drawJMENU() {
   delay(50);
 
   // Display background
-  drawStatusBar("Type:YYYYMMDD or (T)oday");
+  getEink().drawStatusBar("Type:YYYYMMDD or (T)oday");
   display.drawBitmap(0, 0, _journal, 320, 218, GxEPD_BLACK);
 
   // Update current progress graph
@@ -296,7 +301,7 @@ void processKB_JOURNAL() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          oledLine(currentLine, false);
+          getOled().oledLine(currentLine, false);
         }
       }
       break;
@@ -305,7 +310,7 @@ void processKB_JOURNAL() {
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
       inchar = updateKeypress();
       // SET MAXIMUMS AND FONT
-      setTXTFont(currentFont);
+      getEink().setTXTFont(getEink().getCurrentFont());
 
       // UPDATE SCROLLBAR
       updateScrollFromTouch();
@@ -344,7 +349,7 @@ void processKB_JOURNAL() {
       else if (inchar == 20) {                                  
         allLines.clear();
         currentLine = "";
-        oledWord("Clearing...");
+        getOled().oledWord("Clearing...");
         doFull = true;
         newLineAdded = true;
         delay(300);
@@ -375,12 +380,6 @@ void processKB_JOURNAL() {
         CurrentKBState = NORMAL;
         newLineAdded = true;
       }
-      // Font Switcher 
-      else if (inchar == 14) {                                  
-        CurrentTXTState = FONT;
-        CurrentKBState = FUNC;
-        newState = true;
-      }
       else {
         currentLine += inchar;
         if (inchar >= 48 && inchar <= 57) {}  //Only leave FN on if typing numbers
@@ -395,10 +394,10 @@ void processKB_JOURNAL() {
         OLEDFPSMillis = currentMillis;
         // ONLY SHOW OLEDLINE WHEN NOT IN SCROLL MODE
         if (lastTouch == -1) {
-          oledLine(currentLine);
+          getOled().oledLine(currentLine);
           if (prev_dynamicScroll != dynamicScroll) prev_dynamicScroll = dynamicScroll;
         }
-        else oledScroll();
+        else getOled().oledScroll();
       }
 
       if (currentLine.length() > 0) {
@@ -446,17 +445,17 @@ void einkHandler_JOURNAL() {
 
         drawJMENU();
 
-        multiPassRefesh(2);
+        getEink().multiPassRefesh(2);
       }
       break;
     case J_TXT:
       if (newState && doFull) {
         display.fillScreen(GxEPD_WHITE);
-        refresh();
+        getEink().refresh();
       }
       if (newLineAdded && !newState) {
-        einkTextDynamic(true);
-        refresh();
+        getEink().einkTextDynamic(true);
+        getEink().refresh();
       }
 
       newState = false;

@@ -5,7 +5,17 @@
 //   888     888  888      888  8  `888'   888   888    "     //
 //   888     888  `88b    d88'  8    Y     888   888       o  //
 //  o888o   o888o  `Y8bood8P'  o8o        o888o o888ooooood8  //
-#include "globals.h"
+#include <pocketmage.h>
+
+static String currentLine = "";
+
+void HOME_INIT() {
+  CurrentAppState = HOME;
+  currentLine     = "";
+  CurrentKBState  = NORMAL;
+  CurrentHOMEState = HOME_HOME;
+  newState = true;
+}
 
 void commandSelect(String command) {
   command.toLowerCase();
@@ -23,10 +33,7 @@ void commandSelect(String command) {
       lowerFileName.toLowerCase();
       if (command == lowerFileName || (command+".txt") == lowerFileName || ("/"+command+".txt") == lowerFileName) {
         workingFile = filesList[i];
-        CurrentAppState = FILEWIZ;
-        CurrentFileWizState = WIZ1_;
-        CurrentKBState  = FUNC;
-        newState = true;
+        FILEWIZ_INIT();
         return;
       }
     }
@@ -45,11 +52,7 @@ void commandSelect(String command) {
       lowerFileName.toLowerCase();
       if (command == lowerFileName || (command+".txt") == lowerFileName || ("/"+command+".txt") == lowerFileName) {
         editingFile = filesList[i];
-        loadFile();
-        CurrentAppState = TXT;
-        CurrentTXTState = TXT_;
-        CurrentKBState  = NORMAL;
-        newLineAdded = true;
+        TXT_INIT();
         return;
       }
     }
@@ -60,25 +63,25 @@ void commandSelect(String command) {
     String numStr = command.substring(6);
     int sides = numStr.toInt();
     if (sides < 1) {
-      oledWord("Please enter a valid number");
+      getOled().oledWord("Please enter a valid number");
       delay(2000);
     } 
     else if (sides == 1) {
-      oledWord("D1: you rolled a 1, duh!");
+      getOled().oledWord("D1: you rolled a 1, duh!");
       delay(2000);
     }
     else {
       int roll = (esp_random() % sides) + 1;
-      if (roll == sides)  oledWord("D" + String(sides) + ": " + String(roll) + "!!!");
-      else if (roll == 1) oledWord("D" + String(sides) + ": " + String(roll) + " :(");
-      else                oledWord("D" + String(sides) + ": " + String(roll));
+      if (roll == sides)  getOled().oledWord("D" + String(sides) + ": " + String(roll) + "!!!");
+      else if (roll == 1) getOled().oledWord("D" + String(sides) + ": " + String(roll) + " :(");
+      else                getOled().oledWord("D" + String(sides) + ": " + String(roll));
       delay(3000);
       CurrentKBState = NORMAL;
     }
   }
 
   else if (command == "home") {
-    oledWord("You're home, silly!");
+    getOled().oledWord("You're home, silly!");
     delay(1000);
   } 
   /////////////////////////////
@@ -115,40 +118,81 @@ void commandSelect(String command) {
     JOURNAL_INIT();
   }
   /////////////////////////////
-  else if (command == "calc" || command == "calculator" || command == "math" || command == "10") {
-    CALC_INIT();
-  }
-  /////////////////////////////
   else if (command == "i farted") {
-    oledWord("That smells");
+    getOled().oledWord("That smells");
     delay(1000);
   } 
   else if (command == "poop") {
-    oledWord("Yuck");
+    getOled().oledWord("Yuck");
     delay(1000);
   } 
   else if (command == "hello") {
-    oledWord("Hey, you!");
+    getOled().oledWord("Hey, you!");
     delay(1000);
   } 
   else if (command == "hi") {
-    oledWord("What's up?");
+    getOled().oledWord("What's up?");
     delay(1000);
   } 
   else if (command == "i love you") {
-    oledWord("luv u 2 <3");
+    getOled().oledWord("luv u 2 <3");
     delay(1000);
   } 
   else if (command == "what can you do") {
-    oledWord("idk man");
+    getOled().oledWord("idk man");
     delay(1000);
   } 
   else if (command == "alexa") {
-    oledWord("...");
+    getOled().oledWord("...");
     delay(1000);
   } 
   else {
     settingCommandSelect(command);
+  }
+}
+
+void drawHome() {
+  display.setRotation(3);
+  display.fillScreen(GxEPD_WHITE);
+  
+  int16_t x1, y1;
+  uint16_t charWidth, charHeight;
+  uint8_t appsPerRow = 5; // Number of apps per row
+  uint8_t spacingX = 60;  // Horizontal spacing
+  uint8_t spacingY = 60;  // Vertical spacing
+  uint8_t iconSize = 40;  // Icon width and height
+  uint8_t startX = 20;    // Initial X position
+  uint8_t startY = 20;    // Initial Y position
+
+  display.setFont(&FreeSerif9pt7b);
+  for (int i = 0; i < sizeof(appIcons) / sizeof(appIcons[0]); i++) {
+    int row = i / appsPerRow;
+    int col = i % appsPerRow;
+    
+    int xPos = startX + (spacingX * col);
+    int yPos = startY + (spacingY * row);
+
+    display.drawBitmap(xPos, yPos, appIcons[i], iconSize, iconSize, GxEPD_BLACK);
+    display.getTextBounds(appStateNames[i], 0, 0, &x1, &y1, &charWidth, &charHeight);
+    display.setCursor(xPos + (iconSize / 2) - (charWidth / 2), yPos + iconSize + 13);
+    display.print(appStateNames[i]);
+  }
+  display.setFont(&FreeMonoBold9pt7b);
+
+  getEink().drawStatusBar("Type a Command:");
+}
+
+void drawThickLine(int x0, int y0, int x1, int y1, int thickness) {
+  float dx = x1 - x0;
+  float dy = y1 - y0;
+  float length = sqrt(dx * dx + dy * dy);
+  float stepX = dx / length;
+  float stepY = dy / length;
+
+  for (float i = 0; i <= length; i += thickness / 2.0) {
+    int cx = round(x0 + i * stepX);
+    int cy = round(y0 + i * stepY);
+    display.fillCircle(cx, cy, thickness / 2, GxEPD_BLACK);
   }
 }
 
@@ -210,7 +254,7 @@ void processKB_HOME() {
         //Make sure oled only updates at OLED_MAX_FPS
         if (currentMillis - OLEDFPSMillis >= (1000/OLED_MAX_FPS)) {
           OLEDFPSMillis = currentMillis;
-          oledLine(currentLine, false);
+          getOled().oledLine(currentLine, false);
         }
       }
       break;
@@ -232,8 +276,8 @@ void einkHandler_HOME() {
       if (newState) {
         newState = false;
         drawHome();
-        refresh();
-        //multiPassRefesh(2);
+        getEink().refresh();
+        //getEink().multiPassRefesh(2);
       }
       break;
 
@@ -286,40 +330,9 @@ void einkHandler_HOME() {
           }
         }
 
-        forceSlowFullUpdate = true;
-        refresh();
+        getEink().forceSlowFullUpdate(true);
+        getEink().refresh();
       }
       break;
   }
-}
-
-void drawHome() {
-  display.setRotation(3);
-  display.fillScreen(GxEPD_WHITE);
-  
-  int16_t x1, y1;
-  uint16_t charWidth, charHeight;
-  uint8_t appsPerRow = 5; // Number of apps per row
-  uint8_t spacingX = 60;  // Horizontal spacing
-  uint8_t spacingY = 60;  // Vertical spacing
-  uint8_t iconSize = 40;  // Icon width and height
-  uint8_t startX = 20;    // Initial X position
-  uint8_t startY = 20;    // Initial Y position
-
-  display.setFont(&FreeSerif9pt7b);
-  for (int i = 0; i < sizeof(appIcons) / sizeof(appIcons[0]); i++) {
-    int row = i / appsPerRow;
-    int col = i % appsPerRow;
-    
-    int xPos = startX + (spacingX * col);
-    int yPos = startY + (spacingY * row);
-
-    display.drawBitmap(xPos, yPos, appIcons[i], iconSize, iconSize, GxEPD_BLACK);
-    display.getTextBounds(appStateNames[i], 0, 0, &x1, &y1, &charWidth, &charHeight);
-    display.setCursor(xPos + (iconSize / 2) - (charWidth / 2), yPos + iconSize + 13);
-    display.print(appStateNames[i]);
-  }
-  display.setFont(&FreeMonoBold9pt7b);
-
-  drawStatusBar("Type a Command:");
 }

@@ -211,6 +211,7 @@ void setup() {
     oledWord("TouchPad Failed");
     delay(1000);
   }
+  
 
   // RTC SETUP
   pinMode(RTC_INT, INPUT);

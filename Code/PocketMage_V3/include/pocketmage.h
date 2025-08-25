@@ -1,10 +1,8 @@
 #pragma once
 #include <globals.h>
-
-// Accessors (wire*/get*)
-#include <pocketmage_setup_eink.h>
-#include <pocketmage_setup_oled.h>
-
-// Library headers
+// Pocketmage library headers
 #include <pocketmage_eink.h>
 #include <pocketmage_oled.h>
+#include <pocketmage_sd.h>
+#include <pocketmage_kb.h>
+#include <pocketmage_bz.h>

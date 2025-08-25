@@ -7,8 +7,6 @@
 //  8""88888P'      o888o     8""88888P'      o888o     o888ooooood8 o8o        o888o  //
 #include <pocketmage.h>
 
-uint8_t fileIndex = 0;
-String excludedFiles[3] = { "/temp.txt", "/settings.txt", "/tasks.txt" };
 
 // High-Level File Operations
 int countVisibleChars(String input) {
@@ -45,7 +43,7 @@ void saveFile() {
     keypad.disableInterrupts();
     if (!editingFile.startsWith("/")) editingFile = "/" + editingFile;
     //OLED().oledWord("Saving File: "+ editingFile);
-    writeFile(SD_MMC, (editingFile).c_str(), textToSave.c_str());
+    SD().writeFile(SD_MMC, (editingFile).c_str(), textToSave.c_str());
     //OLED().oledWord("Saved: "+ editingFile);
 
     // Write MetaData
@@ -73,7 +71,7 @@ void writeMetadata(const String& path) {
   String fileSizeStr = String(fileSizeBytes) + " Bytes";
 
   // Get line and char counts
-  int charCount = countVisibleChars(readFileToString(SD_MMC, path.c_str()));
+  int charCount = countVisibleChars(SD().readFileToString(SD_MMC, path.c_str()));
 
   String charStr  = String(charCount) + " Char";
 
@@ -136,7 +134,7 @@ void loadFile(bool showOLED) {
     keypad.disableInterrupts();
     if (showOLED) OLED().oledWord("Loading File");
     if (!editingFile.startsWith("/")) editingFile = "/" + editingFile;
-    String textToLoad = readFileToString(SD_MMC, (editingFile).c_str());
+    String textToLoad = SD().readFileToString(SD_MMC, (editingFile).c_str());
     if (DEBUG_VERBOSE) {
       Serial.println("Text to load:");
       Serial.println(textToLoad);
@@ -166,7 +164,7 @@ void delFile(String fileName) {
     keypad.disableInterrupts();
     //OLED().oledWord("Deleting File: "+ fileName);
     if (!fileName.startsWith("/")) fileName = "/" + fileName;
-    deleteFile(SD_MMC, fileName.c_str());
+    SD().deleteFile(SD_MMC, fileName.c_str());
     //OLED().oledWord("Deleted: "+ fileName);
 
     // Delete MetaData
@@ -232,7 +230,7 @@ void renFile(String oldFile, String newFile) {
     //OLED().oledWord("Renaming "+ oldFile + " to " + newFile);
     if (!oldFile.startsWith("/")) oldFile = "/" + oldFile;
     if (!newFile.startsWith("/")) newFile = "/" + newFile;
-    renameFile(SD_MMC, oldFile.c_str(), newFile.c_str());
+    SD().renameFile(SD_MMC, oldFile.c_str(), newFile.c_str());
     OLED().oledWord(oldFile + " -> " + newFile);
     delay(1000);
 
@@ -311,8 +309,8 @@ void copyFile(String oldFile, String newFile) {
     OLED().oledWord("Loading File");
     if (!oldFile.startsWith("/")) oldFile = "/" + oldFile;
     if (!newFile.startsWith("/")) newFile = "/" + newFile;
-    String textToLoad = readFileToString(SD_MMC, (oldFile).c_str());
-    writeFile(SD_MMC, (newFile).c_str(), textToLoad.c_str());
+    String textToLoad = SD().readFileToString(SD_MMC, (oldFile).c_str());
+    SD().writeFile(SD_MMC, (newFile).c_str(), textToLoad.c_str());
     OLED().oledWord("Saved: "+ newFile);
 
     // Write MetaData
@@ -338,7 +336,7 @@ void appendToFile(String path, String inText) {
     delay(50);
 
     keypad.disableInterrupts();
-    appendFile(SD_MMC, path.c_str(), inText.c_str());
+    SD().appendFile(SD_MMC, path.c_str(), inText.c_str());
 
     // Write MetaData
     writeMetadata(path);
@@ -468,15 +466,15 @@ void updateBattState() {
 
   prevVoltage = filteredVoltage;
 }
-
+/* migrated to pocketmage_kb.h
 void TCA8418_irq() {
   TCA8418_event = true;
 }
-
+*/
 void PWR_BTN_irq() {
   PWR_BTN_event = true;
 }
-
+/* migrated to pocketmage_kb.h
 char updateKeypress() {
   if (TCA8418_event == true) {
     int k = keypad.getEvent();
@@ -512,6 +510,7 @@ char updateKeypress() {
 
   return 0;
 }
+*/
 void updateScrollFromTouch() {
 
   uint16_t touched = cap.touched();  // Read touch state
@@ -589,7 +588,7 @@ int stringToInt(String str) {
 
   return str.toInt(); // Safe to convert
 }
-
+/* // migrated to pocketmage_buzzer.h
 // Misc Outputs
 void playJingle(String jingle) {
   if (jingle == "startup") {
@@ -613,7 +612,7 @@ void playJingle(String jingle) {
     return;
   }
 }
-
+*/
 void printDebug() {
   DateTime now = rtc.now();
   if (now.second() != prevSec) {
@@ -741,7 +740,7 @@ void checkTimeout() {
         display.hibernate();
         
         //Sleep the device
-        playJingle("shutdown");
+        BZ().playJingle(Jingle::Shutdown);
         esp_deep_sleep_start();
       }
   }
@@ -776,7 +775,7 @@ void checkTimeout() {
       newState = true;
       
       // Shutdown Jingle
-      playJingle("shutdown");
+      BZ().playJingle(Jingle::Shutdown);
 
       // Clear screen
       display.setFullWindow();
@@ -833,7 +832,7 @@ void checkTimeout() {
     EINK().forceSlowFullUpdate(true);
 
     // Play startup jingle
-    playJingle("startup");
+    BZ().playJingle(Jingle::Startup);
 
     EINK().refresh();
     delay(200);
@@ -852,7 +851,7 @@ void deepSleep(bool alternateScreenSaver) {
   }
   
   // Shutdown Jingle
-  playJingle("shutdown");
+  BZ().playJingle(Jingle::Shutdown);
 
   if (alternateScreenSaver == false) {
     int numScreensavers = sizeof(ScreenSaver_allArray) / sizeof(ScreenSaver_allArray[0]);
@@ -861,7 +860,7 @@ void deepSleep(bool alternateScreenSaver) {
     //display.setPartialWindow(0, 0, 320, 60);
     display.setFullWindow();
     display.drawBitmap(0, 0, ScreenSaver_allArray[randomScreenSaver_], 320, 240, GxEPD_BLACK);
-    EINK().multiPassRefesh(2);
+    EINK().multiPassRefresh(2);
   }
   else {
     // Display alternate screensaver
@@ -946,229 +945,4 @@ void loadState(bool changeState) {
   }
 
   prefs.end();
-}
-
-// Low-Level SDMMC Operations
-void listDir(fs::FS &fs, const char *dirname) {
-  if (noSD) {
-    OLED().oledWord("OP FAILED - No SD!");
-    delay(5000);
-    return;
-  }
-  else {
-    setCpuFrequencyMhz(240);
-    delay(50);
-    noTimeout = true;
-    Serial.printf("Listing directory: %s\r\n", dirname);
-
-    File root = fs.open(dirname);
-    if (!root) {
-      Serial.println("- failed to open directory");
-      return;
-    }
-    if (!root.isDirectory()) {
-      Serial.println(" - not a directory");
-      return;
-    }
-
-    // Reset fileIndex and initialize filesList with "-"
-    fileIndex = 0; // Reset fileIndex
-    for (int i = 0; i < MAX_FILES; i++) {
-      filesList[i] = "-";
-    }
-
-    File file = root.openNextFile();
-    while (file && fileIndex < MAX_FILES) {
-      if (!file.isDirectory()) {
-        String fileName = String(file.name());
-        
-        // Check if file is in the exclusion list
-        bool excluded = false;
-        for (const String &excludedFile : excludedFiles) {
-          if (fileName.equals(excludedFile) || ("/"+fileName).equals(excludedFile)) {
-            excluded = true;
-            break;
-          }
-        }
-
-        if (!excluded) {
-          filesList[fileIndex++] = fileName; // Store file name if not excluded
-        }
-      }
-      file = root.openNextFile();
-    }
-
-    for (int i = 0; i < fileIndex; i++) { // Only print valid entries
-      Serial.println(filesList[i]);
-    }
-
-    noTimeout = false;
-    //if (SAVE_POWER) setCpuFrequencyMhz(40);
-  }
-}
-
-void readFile(fs::FS &fs, const char *path) {
-  if (noSD) {
-    OLED().oledWord("OP FAILED - No SD!");
-    delay(5000);
-    return;
-  }
-  else {
-    setCpuFrequencyMhz(240);
-    delay(50);
-    noTimeout = true;
-    Serial.printf("Reading file: %s\r\n", path);
-
-    File file = fs.open(path);
-    if (!file || file.isDirectory()) {
-      Serial.println("- failed to open file for reading");
-      return;
-    }
-
-    Serial.println("- read from file:");
-    while (file.available()) {
-      Serial.write(file.read());
-    }
-    file.close();
-    noTimeout = false;
-    //if (SAVE_POWER) setCpuFrequencyMhz(40);
-  }
-}
-
-String readFileToString(fs::FS &fs, const char *path) {
-  if (noSD) {
-    OLED().oledWord("OP FAILED - No SD!");
-    delay(5000);
-    return "";
-  }
-  else { 
-    setCpuFrequencyMhz(240);
-    delay(50);
-
-    noTimeout = true;
-    Serial.printf("Reading file: %s\r\n", path);
-
-    File file = fs.open(path);
-    if (!file || file.isDirectory()) {
-      Serial.println("- failed to open file for reading");
-      OLED().oledWord("Load Failed");
-      delay(500);
-      return "";  // Return an empty string on failure
-    }
-
-    Serial.println("- reading from file:");
-    String content = "";  // Initialize an empty String to hold the content
-
-    while (file.available()) {
-      content += (char)file.read();  // Read each character and append to the String
-    }
-
-    file.close();
-    EINK().setFullRefreshAfter(FULL_REFRESH_AFTER); //Force a full refresh
-    noTimeout = false;
-    return content;  // Return the complete String
-  }
-}
-
-void writeFile(fs::FS &fs, const char *path, const char *message) {
-  if (noSD) {
-    OLED().oledWord("OP FAILED - No SD!");
-    delay(5000);
-    return;
-  }
-  else {
-    setCpuFrequencyMhz(240);
-    delay(50);
-    noTimeout = true;
-    Serial.printf("Writing file: %s\r\n", path);
-    delay(200);
-
-    File file = fs.open(path, FILE_WRITE);
-    if (!file) {
-      Serial.println("- failed to open file for writing");
-      return;
-    }
-    if (file.print(message)) {
-      Serial.println("- file written");
-    } 
-    else {
-      Serial.println("- write failed");
-    }
-    file.close();
-    noTimeout = false;
-    //if (SAVE_POWER) setCpuFrequencyMhz(40);
-  }
-}
-
-void appendFile(fs::FS &fs, const char *path, const char *message) {
-  if (noSD) {
-    OLED().oledWord("OP FAILED - No SD!");
-    delay(5000);
-    return;
-  }
-  else {
-    setCpuFrequencyMhz(240);
-    delay(50);
-    noTimeout = true;
-    Serial.printf("Appending to file: %s\r\n", path);
-
-    File file = fs.open(path, FILE_APPEND);
-    if (!file) {
-      Serial.println("- failed to open file for appending");
-      return;
-    }
-    if (file.println(message)) {
-      Serial.println("- message appended");
-    } 
-    else {
-      Serial.println("- append failed");
-    }
-    file.close();
-    noTimeout = false;
-    //if (SAVE_POWER) setCpuFrequencyMhz(40);
-  }
-}
-
-void renameFile(fs::FS &fs, const char *path1, const char *path2) {
-  if (noSD) {
-    OLED().oledWord("OP FAILED - No SD!");
-    delay(5000);
-    return;
-  }
-  else {
-    setCpuFrequencyMhz(240);
-    delay(50);
-    noTimeout = true;
-    Serial.printf("Renaming file %s to %s\r\n", path1, path2);
-    if (fs.rename(path1, path2)) {
-      Serial.println("- file renamed");
-    } 
-    else {
-      Serial.println("- rename failed");
-    }
-    noTimeout = false;
-    //if (SAVE_POWER) setCpuFrequencyMhz(40);
-  }
-}
-
-void deleteFile(fs::FS &fs, const char *path) {
-  if (noSD) {
-    OLED().oledWord("OP FAILED - No SD!");
-    delay(5000);
-    return;
-  }
-  else {
-    setCpuFrequencyMhz(240);
-    delay(50);
-    noTimeout = true;
-    Serial.printf("Deleting file: %s\r\n", path);
-    if (fs.remove(path)) {
-      Serial.println("- file deleted");
-    } 
-    else {
-      Serial.println("- delete failed");
-    }
-    noTimeout = false;
-    //if (SAVE_POWER) setCpuFrequencyMhz(40);
-  }
 }

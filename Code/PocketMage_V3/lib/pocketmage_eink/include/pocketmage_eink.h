@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include <GxEPD2_BW.h>
 #include <vector>
+#include <config.h> // for FULL_REFRESH_AFTER
 
 // FONTS
 // 3x7
@@ -26,6 +27,11 @@
 #include <Fonts/FreeSans12pt7b.h>
 #include <Fonts/FreeSerif12pt7b.h>
 
+class PocketmageEink;
+void wireEink();
+void setupEink();
+PocketmageEink& EINK();
+
 // Panel type alias
 using PanelT   = GxEPD2_310_GDEQ031T10;
 using DisplayT = GxEPD2_BW<PanelT, PanelT::HEIGHT>;
@@ -37,13 +43,13 @@ public:
   // Wire up external buffers/state used to read from globals
   void setTextBuffer(std::vector<String>* lines);                 // reference to allLines
   void setEditingFilePtr(String* editingFile);                    // reference to editingFile string
-  void setDynamicScroll(volatile long* dynamicScrollPtr);      // reference to dynamicScroll
+  void setDynamicScroll(volatile long* dynamicScrollPtr);         // reference to dynamicScroll
   void setLineSpacing(uint8_t px);                                // reference to lineSpacing (default 6)
   void setFullRefreshAfter(uint8_t n);                            // reference to FULL_REFRESH_AFTER (default 5)
-  void setCurrentFont(const GFXfont* font);                     // reference to currentFont
+  void setCurrentFont(const GFXfont* font);                       // reference to currentFont
 
   void refresh();
-  void multiPassRefesh(int passes);
+  void multiPassRefresh(int passes);
   void setFastFullRefresh(bool setting);
   void statusBar(const String& input, bool fullWindow=false);
   void drawStatusBar(const String& input);
@@ -59,7 +65,7 @@ public:
   
   void forceSlowFullUpdate(bool force);
 
-  uint8_t fullRefreshAfter_ = 5; // FULL_REFRESH_AFTER = 5
+  uint8_t fullRefreshAfter_ = FULL_REFRESH_AFTER;
 
 private:
   DisplayT& display_;
@@ -68,12 +74,12 @@ private:
   const GFXfont* currentFont_ = nullptr;
   volatile long* dynamicScroll_ = nullptr;
 
-  // formerly globals
+ 
   uint8_t lineSpacing_ = 6;
   uint8_t partialCounter_ = 0;
   bool    forceSlowFullUpdate_ = false;
 
-  // derived metrics
+  // derived font metrics
   uint8_t maxCharsPerLine_ = 0;
   uint8_t maxLines_        = 0;
   uint8_t fontHeight_      = 0;

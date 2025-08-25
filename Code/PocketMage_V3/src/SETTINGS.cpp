@@ -223,7 +223,7 @@ void processKB_settings() {
   switch (CurrentSettingsState) {
     case settings0:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);   
@@ -328,6 +328,6 @@ void einkHandler_settings() {
 
     EINK().drawStatusBar("Type a Command:");
 
-    EINK().multiPassRefesh(2);
+    EINK().multiPassRefresh(2);
   }
 }

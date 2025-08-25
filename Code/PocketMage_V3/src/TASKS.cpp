@@ -136,7 +136,7 @@ void processKB_TASKS() {
       CurrentKBState = FUNC;
       //Make keyboard only updates after cooldown
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        inchar = updateKeypress();
+        inchar = KB().updateKeypress();
         //No char recieved
         if (inchar == 0);
         //BKSP Recieved
@@ -179,7 +179,7 @@ void processKB_TASKS() {
       if (newTaskState == 1) CurrentKBState = FUNC;
 
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        inchar = updateKeypress();
+        inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);                                        
@@ -267,7 +267,7 @@ void processKB_TASKS() {
       currentMillis = millis();
       //Make sure oled only updates at 60fps
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         //No char recieved
         if (inchar == 0);
         //BKSP Recieved

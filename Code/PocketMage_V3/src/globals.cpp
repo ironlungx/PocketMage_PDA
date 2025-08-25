@@ -9,11 +9,12 @@ volatile bool GxEPD2_310_GDEQ031T10::useFastFullUpdate = true;
 // 256x32 SPI OLED display object
 U8G2_SSD1326_ER_256X32_F_4W_HW_SPI u8g2(U8G2_R2, OLED_CS, OLED_DC, OLED_RST);
 
-
 // ===================== INPUT DEVICES =====================
+
 // Matrix keypad controller
 Adafruit_TCA8418 keypad;
 // Key layouts
+/* migrated to pocketmage_kb.h
 char keysArray[4][10] = {
     { 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p' },
     { 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',   8 },  // 8:BKSP
@@ -32,8 +33,13 @@ char keysArrayFN[4][10] = {
     {  14, '%', '_', '&', '+', '-', '/',  '?',  ',',  13 },
     {   0,  17,  18, ' ', ' ', ' ',  12,    7,    6,   0 }
 };
+*/
 // Capacitive touch slider
 Adafruit_MPR121 cap = Adafruit_MPR121();
+volatile long int dynamicScroll = 0;         // Dynamic scroll offset
+volatile long int prev_dynamicScroll = 0;    // Previous scroll offset
+int lastTouch = -1;                          // Last touch event
+unsigned long lastTouchTime = 0;             // Last touch time
 
 // ===================== AUDIO =====================
 // Buzzer for sound feedback
@@ -89,7 +95,7 @@ uint8_t partialCounter = 0;           // Counter for partial refreshes
 volatile bool forceSlowFullUpdate = false; // Force slow full update
 
 // ===================== KEYBOARD STATE =====================
-char currentKB[4][10];            // Current keyboard layout
+// char currentKB[4][10];            // Current keyboard layout
 KBState CurrentKBState = NORMAL;  // Current keyboard state
 
 // ===================== FILES & TEXT =====================
@@ -113,10 +119,6 @@ AppState CurrentAppState;             // Current app state
 // ===================== TXT APP =====================
 volatile bool newLineAdded = true;           // New line added in TXT
 std::vector<String> allLines;                // All lines in TXT
-volatile long int dynamicScroll = 0;         // Dynamic scroll offset
-volatile long int prev_dynamicScroll = 0;    // Previous scroll offset
-int lastTouch = -1;                          // Last touch event
-unsigned long lastTouchTime = 0;             // Last touch time
 
 // ===================== TASKS APP =====================
 std::vector<std::vector<String>> tasks;      // Task list

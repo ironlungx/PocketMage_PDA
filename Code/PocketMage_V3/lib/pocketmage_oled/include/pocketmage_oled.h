@@ -13,6 +13,11 @@
 #include <functional>
 #include <utility>
 
+class PocketmageOled;
+void wireOled();
+void setupOled();
+PocketmageOled& OLED();
+
 // U8G2 FONTS
 //U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 //u8g2_font_4x6_mf
@@ -30,37 +35,35 @@ public:
   using KbStateFn = std::function<int()>;
   using MaxCharsFn = std::function<uint16_t()>;
 
-  PocketmageOled& setAllLines(std::vector<String>* lines)              { lines_ = lines; return *this; }
-  PocketmageOled& setDynamicScroll(volatile long* scroll)              { dynamicScroll_ = scroll; return *this; }
-
+  void setAllLines(std::vector<String>* lines)              { lines_ = lines;}
+  void setDynamicScroll(volatile long* scroll)              { dynamicScroll_ = scroll;}
   // E-ink measurement
-  PocketmageOled& setReferenceWidth(uint16_t w)                        { refWidth_ = w; return *this; }
-  PocketmageOled& setMeasureTextWidth(MeasureTextFn fn)                { measure_ = std::move(fn); return *this; }
+  void setReferenceWidth(uint16_t w)                        { refWidth_ = w;}
+  void setMeasureTextWidth(MeasureTextFn fn)                { measure_ = std::move(fn);}
 
   // Battery icon/state
-  PocketmageOled& setBattery(volatile int* st, const uint8_t* const* icons, int iconCount) {
+  void setBattery(volatile int* st, const uint8_t* const* icons, int iconCount) {
     battState_ = st;
     battIcons_ = icons;
     battIconCount_ = iconCount;
-    return *this;
   }
 
   // Keyboard state: 0=NORMAL, 1=SHIFT, 2=FUNC
-  PocketmageOled& setKeyboardState(int* kbState)                       { kbState_ = kbState; return *this; }
-  PocketmageOled& setKeyboardStateGetter(KbStateFn fn) { kbStateFn_ = std::move(fn); return *this; }
+  void setKeyboardState(int* kbState)                       { kbState_ = kbState;}
+  void setKeyboardStateGetter(KbStateFn fn) { kbStateFn_ = std::move(fn);}
   
   // Clock
-  PocketmageOled& setClock(RTC_PCF8563* rtc, bool* systemClock, bool* showYear, const char (*days)[12])
-  { rtc_ = rtc; systemClock_ = systemClock; showYear_ = showYear; days_ = days; return *this; }
+  void setClock(RTC_PCF8563* rtc, bool* systemClock, bool* showYear, const char (*days)[12])
+  { rtc_ = rtc; systemClock_ = systemClock; showYear_ = showYear; days_ = days;}
 
   // Flags
-  PocketmageOled& setMSC(bool* mscEnabled)                             { mscEnabled_ = mscEnabled; return *this; }
-  PocketmageOled& setSD(volatile bool* sdActive)                       { sdActive_ = sdActive; return *this; }
+  void setMSC(bool* mscEnabled)                             { mscEnabled_ = mscEnabled;}
+  void setSD(volatile bool* sdActive)                       { sdActive_ = sdActive;}
 
   // Static assets
-  PocketmageOled& setScrollBitmap(const uint8_t* bmp128x32)            { scrollBmp_ = bmp128x32; return *this; }
+  void setScrollBitmap(const uint8_t* bmp128x32)            { scrollBmp_ = bmp128x32;}
   
-  PocketmageOled& setMaxCharsPerLineEinkGetter(MaxCharsFn fn) { maxCharsFn_ = std::move(fn); return *this;}
+  void setMaxCharsPerLineEinkGetter(MaxCharsFn fn) { maxCharsFn_ = std::move(fn);}
   
   // Main methods
   void oledWord(String word, bool allowLarge = false, bool showInfo = true);

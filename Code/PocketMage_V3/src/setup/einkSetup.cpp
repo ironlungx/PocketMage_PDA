@@ -11,13 +11,33 @@
 // Initialization of eink display class
 static PocketmageEink eink(display);
 
+void setupEink() {
+  wireEink();
+  display.init(115200);
+  display.setRotation(3);
+  display.setTextColor(GxEPD_BLACK);
+  display.setFullWindow();
+  EINK().setTXTFont(&FreeMonoBold9pt7b); // default font, computeFontMetrics_()
+
+  xTaskCreatePinnedToCore(
+    einkHandler,             // Function name
+    "einkHandlerTask",       // Task name
+    10000,                   // Stack size
+    NULL,                    // Parameters 
+    1,                       // Priority 
+    &einkHandlerTaskHandle,  // Task handle
+    0                        // Core ID 
+  );
+
+}
+
 // Wire function 
-void wireEink()
-{
+void wireEink() {
   eink.setTextBuffer(&allLines);
   eink.setEditingFilePtr(&editingFile);
   eink.setDynamicScroll(&dynamicScroll);
 }
+
 
 // Access for other apps
 PocketmageEink& EINK() { return eink; }

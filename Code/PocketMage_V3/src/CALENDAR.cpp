@@ -882,7 +882,7 @@ void processKB_CALENDAR() {
   switch (CurrentCalendarState) {
     case MONTH:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);  
@@ -954,7 +954,7 @@ void processKB_CALENDAR() {
       break;
     case WEEK:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);  
@@ -1027,7 +1027,7 @@ void processKB_CALENDAR() {
       break;
     case NEW_EVENT:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);  
@@ -1213,7 +1213,7 @@ void processKB_CALENDAR() {
       break;
     case VIEW_EVENT:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);  
@@ -1445,7 +1445,7 @@ void processKB_CALENDAR() {
     case FRI:
     case SAT:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);  
@@ -1579,7 +1579,7 @@ void einkHandler_CALENDAR() {
 
         EINK().forceSlowFullUpdate(true);
         EINK().refresh();
-        //EINK().multiPassRefesh(2);
+        //EINK().multiPassRefresh(2);
       }
       break;
     case MONTH:
@@ -1594,7 +1594,7 @@ void einkHandler_CALENDAR() {
 
         EINK().forceSlowFullUpdate(true);
         EINK().refresh();
-        //EINK().multiPassRefesh(2);
+        //EINK().multiPassRefresh(2);
       }
       break;
     case NEW_EVENT:
@@ -1727,7 +1727,7 @@ void einkHandler_CALENDAR() {
 
         EINK().forceSlowFullUpdate(true);
         EINK().refresh();
-        //EINK().multiPassRefesh(2);
+        //EINK().multiPassRefresh(2);
       }
       break;
   }

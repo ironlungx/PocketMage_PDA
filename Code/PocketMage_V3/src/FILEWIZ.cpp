@@ -36,7 +36,7 @@ void processKB_FILEWIZ() {
       currentMillis = millis();
       //Make sure oled only updates at 60fps
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         //No char recieved
         if (inchar == 0);
         //BKSP Recieved
@@ -73,7 +73,7 @@ void processKB_FILEWIZ() {
       currentMillis = millis();
       //Make sure oled only updates at 60fps
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         //No char recieved
         if (inchar == 0);
         //BKSP Recieved
@@ -119,7 +119,7 @@ void processKB_FILEWIZ() {
       currentMillis = millis();
       //Make sure oled only updates at 60fps
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         //No char recieved
         if (inchar == 0);
         //BKSP Recieved
@@ -162,7 +162,7 @@ void processKB_FILEWIZ() {
       currentMillis = millis();
       //Make sure oled only updates at 60fps
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         //No char recieved
         if (inchar == 0);                                         
         //SHIFT Recieved
@@ -233,7 +233,7 @@ void processKB_FILEWIZ() {
       currentMillis = millis();
       //Make sure oled only updates at 60fps
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         //No char recieved
         if (inchar == 0);                                         
         //SHIFT Recieved
@@ -316,7 +316,7 @@ void einkHandler_FILEWIZ() {
 
         // DRAW FILE LIST
         keypad.disableInterrupts();
-        listDir(SD_MMC, "/");
+        SD().listDir(SD_MMC, "/");
         keypad.enableInterrupts();
 
         for (int i = 0; i < MAX_FILES; i++) {

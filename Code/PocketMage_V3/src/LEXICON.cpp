@@ -91,7 +91,7 @@ void processKB_LEXICON() {
   switch (CurrentLexState) {
     case MENU:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);   
@@ -150,7 +150,7 @@ void processKB_LEXICON() {
 
     case DEF:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);   
@@ -228,12 +228,13 @@ void einkHandler_LEXICON() {
     case MENU:
       if (newState) {
         newState = false;
-
+        display.setRotation(3);
+        display.setFullWindow();
         display.drawBitmap(0, 0, _lex0, 320, 218, GxEPD_BLACK);
 
         EINK().drawStatusBar("Type a Word:");
 
-        EINK().multiPassRefesh(2);
+        EINK().multiPassRefresh(2);
       }
       break;
     case DEF:

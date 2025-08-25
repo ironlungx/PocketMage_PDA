@@ -46,7 +46,7 @@ void PocketmageEink::refresh() {
   display_.fillScreen(GxEPD_WHITE);
   display_.hibernate();
 }
-void PocketmageEink::multiPassRefesh(int passes) {
+void PocketmageEink::multiPassRefresh(int passes) {
   display_.display(false);
   if (passes > 0) {
     for (int i = 0; i < passes; i++) {
@@ -90,7 +90,7 @@ void PocketmageEink::computeFontMetrics_() {
   uint16_t charWidth, charHeight;
   // GET AVERAGE CHAR WIDTH
   display_.getTextBounds("abcdefghijklmnopqrstuvwxyz", 0, 0, &x1, &y1, &charWidth, &charHeight);
-  charWidth = charWidth / 52;
+  charWidth = charWidth / 52; // check if intended 
   maxCharsPerLine_  = display_.width() / charWidth;
 
   display_.getTextBounds("H", 0, 0, &x1, &y1, &charWidth, &charHeight);
@@ -106,7 +106,7 @@ void PocketmageEink::setTXTFont(const GFXfont* font) {
   if (changed) computeFontMetrics_();
 }
 void PocketmageEink::einkTextDynamic(bool doFull, bool noRefresh) {
-  if (!lines_ || !currentFont_) return;
+  if (!lines_ || !currentFont_ || !dynamicScroll_) return;
   
    // SET FONT
   setTXTFont(currentFont_);

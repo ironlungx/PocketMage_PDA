@@ -8,6 +8,8 @@
 
 #include <pocketmage.h>
 
+static String currentLine = "";
+
 // Font includes
 // Mono
 #include <Fonts/FreeMono9pt7b.h>
@@ -46,10 +48,13 @@
 #include <Fonts/FreeSansBoldOblique24pt7b.h>
 
 // ------------------ Fonts ------------------
-#define SPECIAL_PADDING 20 // Padding for lists, code blocks, quote blocks
+#define SPECIAL_PADDING 20      // Padding for lists, code blocks, quote blocks
+#define SPACEWIDTH_SYMBOL "n"   // n is roughly the width of a space
+#define HEADING_LINE_PADDING 8  // Padding between each line
+#define NORMAL_LINE_PADDING  2   
 
 enum FontFamily { serif = 0, sans = 1, mono = 2 };
-uint8_t fontStyle = mono;
+uint8_t fontStyle = sans;
 
 struct FontMap {
     const GFXfont* normal;
@@ -113,9 +118,9 @@ void initFonts() {
   fonts[mono].h3_BI    = &FreeMonoBoldOblique12pt7b;
 
   fonts[mono].code     = &FreeMono9pt7b;
-  fonts[mono].code_B   = &FreeMonoBold9pt7b;
-  fonts[mono].code_I   = &FreeMonoOblique9pt7b;
-  fonts[mono].code_BI  = &FreeMonoBoldOblique9pt7b;
+  fonts[mono].code_B   = &FreeMono9pt7b;
+  fonts[mono].code_I   = &FreeMono9pt7b;
+  fonts[mono].code_BI  = &FreeMono9pt7b;
 
   fonts[mono].quote    = &FreeMono9pt7b;
   fonts[mono].quote_B  = &FreeMonoBold9pt7b;
@@ -148,10 +153,10 @@ void initFonts() {
   fonts[serif].h3_I     = &FreeSerifBoldItalic12pt7b;
   fonts[serif].h3_BI    = &FreeSerifBoldItalic12pt7b;
 
-  fonts[serif].code     = &FreeSerif9pt7b;
-  fonts[serif].code_B   = &FreeSerifBold9pt7b;
-  fonts[serif].code_I   = &FreeSerifItalic9pt7b;
-  fonts[serif].code_BI  = &FreeSerifBoldItalic9pt7b;
+  fonts[serif].code     = &FreeMono9pt7b;
+  fonts[serif].code_B   = &FreeMono9pt7b;
+  fonts[serif].code_I   = &FreeMono9pt7b;
+  fonts[serif].code_BI  = &FreeMono9pt7b;
 
   fonts[serif].quote    = &FreeSerif9pt7b;
   fonts[serif].quote_B  = &FreeSerifBold9pt7b;
@@ -184,10 +189,10 @@ void initFonts() {
   fonts[sans].h3_I     = &FreeSansBoldOblique12pt7b;
   fonts[sans].h3_BI    = &FreeSansBoldOblique12pt7b;
 
-  fonts[sans].code     = &FreeSans9pt7b;
-  fonts[sans].code_B   = &FreeSansBold9pt7b;
-  fonts[sans].code_I   = &FreeSansOblique9pt7b;
-  fonts[sans].code_BI  = &FreeSansBoldOblique9pt7b;
+  fonts[sans].code     = &FreeMono9pt7b;
+  fonts[sans].code_B   = &FreeMono9pt7b;
+  fonts[sans].code_I   = &FreeMono9pt7b;
+  fonts[sans].code_BI  = &FreeMono9pt7b;
 
   fonts[sans].quote    = &FreeSans9pt7b;
   fonts[sans].quote_B  = &FreeSansBold9pt7b;
@@ -236,7 +241,7 @@ const GFXfont* pickFont(char style, bool bold, bool italic) {
       if (italic) return fm.list_I;
       return fm.list;
 
-    case '`': // Code
+    case 'C': // Code
       if (bold && italic) return fm.code_BI;
       if (bold) return fm.code_B;
       if (italic) return fm.code_I;
@@ -320,11 +325,7 @@ struct DocLine {
     int lineWidth = 0;
 
     for (auto &w : words) {
-      const GFXfont *font;
-
-      // Code always uses simple monospace font
-      if (style == 'C') font = pickFont(mono, false, false);
-      else font = pickFont(style, w.bold, w.italic);
+      const GFXfont *font = pickFont(style, w.bold, w.italic);
       display.setFont(font);
 
       int16_t x1, y1;
@@ -333,7 +334,7 @@ struct DocLine {
 
       // space width in current font
       int spaceWidth;
-      display.getTextBounds(" ", 0, 0, &x1, &y1, (uint16_t*)&spaceWidth, &hpx);
+      display.getTextBounds(SPACEWIDTH_SYMBOL, 0, 0, &x1, &y1, (uint16_t*)&spaceWidth, &hpx);
 
       if (lineWidth + wpx > textWidth && !currentLine.words.empty()) {
         // finalize line
@@ -367,54 +368,66 @@ struct DocLine {
 
       int cursorX = startX;
 
+      // 1. Find max height for this line
+      uint16_t max_hpx = 0;
       for (auto &w : ln.words) {
-        // Pick font based on style + bold/italic
-        const GFXfont *font;
+        const GFXfont *font = pickFont(style, w.bold, w.italic);
+        display.setFont(font);
+        int16_t x1, y1;
+        uint16_t wpx, hpx;
+        display.getTextBounds(w.text.c_str(), cursorX, cursorY, &x1, &y1, &wpx, &hpx);
+        if (hpx > max_hpx) max_hpx = hpx;
+      }
 
-        // Code always uses simple monospace font
-        if (style == 'C') font = pickFont(mono, false, false);
-        else font = pickFont(style, w.bold, w.italic);
-        
+      // Add space for headings
+      if (style =='1' || style == '2' || style == '3') max_hpx += 4;
+
+      // 2. Draw all words at the same baseline
+      for (auto &w : ln.words) {
+        const GFXfont *font = pickFont(style, w.bold, w.italic);
         display.setFont(font);
 
         int16_t x1, y1;
         uint16_t wpx, hpx;
         display.getTextBounds(w.text.c_str(), cursorX, cursorY, &x1, &y1, &wpx, &hpx);
 
-        // Skip drawing if below screen
-        if (cursorY + hpx < 0) continue;
-        if (cursorY > display.height()) return cursorY - startY; // stop if line below screen
-
-        // Draw word
-        display.setCursor(cursorX, cursorY + hpx);
+        // Draw word at the baseline
+        display.setCursor(cursorX, cursorY + max_hpx);
         display.print(w.text);
 
         // Advance cursor (word width + space)
         int16_t sx1, sy1;
         uint16_t sw, sh;
-        display.getTextBounds(" ", cursorX, cursorY, &sx1, &sy1, &sw, &sh);
+        display.getTextBounds(SPACEWIDTH_SYMBOL, cursorX, cursorY, &sx1, &sy1, &sw, &sh);
 
         cursorX += wpx + sw;
       }
 
       // Move down for next line
-      if (!ln.words.empty()) {
-        const GFXfont *font = pickFont(style, ln.words[0].bold, ln.words[0].italic);
-        display.setFont(font);
-        int16_t x1, y1;
-        uint16_t wpx, hpx;
-        display.getTextBounds("A", cursorX, cursorY, &x1, &y1, &wpx, &hpx); // line height
-        cursorY += hpx + 2; // +2 padding
-      }
+      uint8_t padding = 0;
+      if (style =='1' || style == '2' || style == '3') padding = HEADING_LINE_PADDING;
+      else padding = NORMAL_LINE_PADDING;
+      cursorY += max_hpx + padding;
     }
 
     // Blockquotes get a vertical line on the left
-    if (style =='>') display.drawFastVLine(SPECIAL_PADDING/2, startY+5, (cursorY-startY)-10, GxEPD_BLACK);
+    if (style =='>') {
+      display.drawFastVLine(SPECIAL_PADDING/2, startY, (cursorY-startY), GxEPD_BLACK);
+      display.drawFastVLine((SPECIAL_PADDING/2)+1, startY, (cursorY-startY), GxEPD_BLACK);
+    }
 
     // Code Blocks get a vertical line on each side
     else if (style == 'C') {
-      display.drawFastVLine(SPECIAL_PADDING/4, startY+5, (cursorY-startY)-10, GxEPD_BLACK);
-      display.drawFastVLine(display.width() - (SPECIAL_PADDING/4), startY+5, (cursorY-startY)-10, GxEPD_BLACK);
+      display.drawFastVLine(SPECIAL_PADDING/4, startY, (cursorY-startY), GxEPD_BLACK);
+      display.drawFastVLine(display.width() - (SPECIAL_PADDING/4), startY, (cursorY-startY), GxEPD_BLACK);
+      display.drawFastVLine((SPECIAL_PADDING/4) + 1, startY, (cursorY-startY), GxEPD_BLACK);
+      display.drawFastVLine(display.width() - (SPECIAL_PADDING/4) - 1, startY, (cursorY-startY), GxEPD_BLACK);
+    }
+
+    // Headings get a horizontal line below them
+    else if (style =='1' || style == '2' || style == '3') {
+      display.drawFastHLine(0, cursorY - 2, display.width(), GxEPD_BLACK);
+      display.drawFastHLine(0, cursorY - 3, display.width(), GxEPD_BLACK);
     }
 
     return cursorY - startY;
@@ -437,6 +450,8 @@ private:
 };
 
 void populateLines(std::vector<DocLine> &docLines) {
+  indexCounter = 0;
+
   for (auto &doc : docLines) {
     doc.parseWords();
     doc.splitToLines();
@@ -495,9 +510,15 @@ void loadMarkdownFile(const String &path) {
       style = 'H';
       content = ""; // horizontal line has no content
     }
-    else if ((line.startsWith("```")) || (line.startsWith("`") && line.endsWith("`"))) {
+    else if ((line.startsWith("'''")) || (line.startsWith("'") && line.endsWith("'"))) {
+      if (line.startsWith("'''")) {
+        content = line.substring(3);
+      }
+      else {
+        content = line.substring(1, line.length() - 1);
+      }
+
       style = 'C';
-      content = line; // keep code fences intact
     }
     else if (line.length() > 2 && isDigit(line.charAt(0)) && line.charAt(1) == '.' && line.charAt(2) == ' ') {
       style = 'L';
@@ -532,4 +553,52 @@ int displayDocument(int startX = 0, int startY = 0) {
 
   // Return total height used
   return cursorY - startY;
+}
+
+void TXT_INIT() {
+  loadMarkdownFile("/markdownTest.txt");
+  OLED().oledWord("FILE LOADED");
+  delay(500);
+
+  initFonts();
+  setFontStyle(serif);
+
+  CurrentAppState = TXT;
+  lineScroll = 0;
+  newState = true;
+}
+
+void einkHandler_TXT_NEW() {
+  if (newState) {
+    OLED().oledWord("DISPLAYING TXT");
+
+    newState = false;
+    display.setFullWindow();
+    display.fillScreen(GxEPD_WHITE);
+    displayDocument();
+    EINK().refresh();
+  }
+}
+
+void processKB_TXT_NEW() {
+  int currentMillis = millis();
+  //Make sure oled only updates at 10FPS
+  if (currentMillis - OLEDFPSMillis >= (1000/10 /*OLED_MAX_FPS*/)) {
+    OLEDFPSMillis = currentMillis;
+    OLED().oledLine(currentLine, false);
+  }
+  
+  if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
+    char inchar = updateKeypress();
+    // HANDLE INPUTS
+    //No char recieved
+    if (inchar == 0);   
+    // Home recieved
+    else if (inchar == 12 || inchar == 8) {
+      CurrentAppState = HOME;
+      currentLine     = "";
+      newState        = true;
+      CurrentKBState  = NORMAL;
+    }
+  }
 }

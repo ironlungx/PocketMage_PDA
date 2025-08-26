@@ -8,9 +8,6 @@
 
 #include <pocketmage.h>
 
-static String currentLine = "";
-static bool updateScreen = false;
-
 // Font includes
 // Mono
 #include <Fonts/FreeMono9pt7b.h>
@@ -47,6 +44,10 @@ static bool updateScreen = false;
 #include <Fonts/FreeSansBoldOblique12pt7b.h>
 #include <Fonts/FreeSansBoldOblique18pt7b.h>
 #include <Fonts/FreeSansBoldOblique24pt7b.h>
+
+// ------------------ General ------------------
+enum TXTState_NEW { TXT_, WIZ0, WIZ1, WIZ2, WIZ3, FONT };
+TXTState_NEW CurrentTXTState_NEW = TXT_;
 
 // ------------------ Fonts ------------------
 #define SPECIAL_PADDING 20      // Padding for lists, code blocks, quote blocks
@@ -257,8 +258,11 @@ const GFXfont* pickFont(char style, bool bold, bool italic) {
 }
 
 // ------------------ Document ------------------
+static bool updateScreen = false;
 ulong indexCounter = 0;
 ulong lineScroll = 0;
+enum EditingModes { edit_inline = 0, edit_append = 1 };
+uint8_t currentEditMode = edit_append;
 
 struct wordObject {
   String text;
@@ -271,6 +275,7 @@ struct LineObject {
   std::vector<wordObject> words;
 };
 
+// Document Line object
 struct DocLine {
   char style;                                        // Markdown style: '1', '2', '3', '>', '-', etc.
   String line;                                       // Raw line content
@@ -442,7 +447,7 @@ struct DocLine {
     return cursorY - startY;
   }
 
-private:
+  private:
   // Helper: split a string segment into words and push them into words vector
   void splitIntoWords(const String &segment, bool bold, bool italic) {
     int start = 0;
@@ -458,6 +463,10 @@ private:
   }
 };
 
+ulong editingLine_index = 0;
+std::vector<DocLine> docLines;
+
+// Parse and split all DocLines into rendered lines
 void populateLines(std::vector<DocLine> &docLines) {
   indexCounter = 0;
 
@@ -466,8 +475,6 @@ void populateLines(std::vector<DocLine> &docLines) {
     doc.splitToLines();
   }
 }
-
-std::vector<DocLine> docLines;
 
 // Load File
 void loadMarkdownFile(const String &path) {
@@ -539,12 +546,40 @@ void loadMarkdownFile(const String &path) {
 
   file.close();
 
+  if (docLines.empty()) {
+    docLines.push_back({'T', "", {}});
+    editingLine_index = 0;
+  }
+  else {
+    editingLine_index = docLines.size() - 1;
+  }
+
   // Populate all the lines
   populateLines(docLines);
 
   if (SAVE_POWER) setCpuFrequencyMhz(80);
   SDActive = false;
 }
+
+
+
+void editAppend() {
+  DocLine& editingDocLine = docLines[editingLine_index];
+
+  if (!editingDocLine.lines.empty()) {
+    LineObject& lastLine = editingDocLine.lines.back();
+    // Now we can access lastLine.words or lastLine.index, etc.
+  } else {
+    // No lines yet, so add a blank lastLine
+    LineObject blankLine;
+    blankLine.index = indexCounter++;
+    editingDocLine.lines.push_back(blankLine);
+    LineObject& lastLine = editingDocLine.lines.back();
+  }
+
+}
+
+// ------------------ Rendering ------------------
 
 // Count number of display lines
 int getTotalDisplayLines() {
@@ -623,6 +658,47 @@ void updateScroll() {
   }
 }
 
+void oledEditorDisplay(String line, uint16_t pixelsUsed) {
+  u8g2.clearBuffer();
+
+  //PROGRESS BAR
+  if (line.length() > 0) {
+    uint8_t progress = map(pixelsUsed, 0, display.width(), 0, 128);
+
+    u8g2.drawVLine(u8g2.getDisplayWidth(), 0, 2);
+    u8g2.drawVLine(0, 0, 2);
+
+    u8g2.drawHLine(0, 0, progress);
+    u8g2.drawHLine(0, 1, progress);
+
+    // LINE END WARNING INDICATOR
+    if (progress > (u8g2.getDisplayWidth() * 0.8)) {
+      if ((millis() / 400) % 2 == 0) {  // ON for 200ms, OFF for 200ms
+        u8g2.drawVLine(u8g2.getDisplayWidth()-1, 8, 32-16);
+        u8g2.drawLine(u8g2.getDisplayWidth()-1,15,u8g2.getDisplayWidth()-4,12);
+        u8g2.drawLine(u8g2.getDisplayWidth()-1,15,u8g2.getDisplayWidth()-4,18);
+      }
+    }
+  }
+
+  // Show infobar
+  OLED().infoBar();
+
+  // DRAW LINE TEXT (unchanged)
+  u8g2.setFont(u8g2_font_ncenB18_tr);
+  if (u8g2.getStrWidth(line.c_str()) < (u8g2.getDisplayWidth() - 5)) {
+    u8g2.drawStr(0, 20, line.c_str());
+    if (line.length() > 0) u8g2.drawVLine(u8g2.getStrWidth(line.c_str()) + 2, 1, 22);
+  } else {
+    u8g2.drawStr(u8g2.getDisplayWidth()-8-u8g2.getStrWidth(line.c_str()), 20, line.c_str());
+  }
+
+  u8g2.sendBuffer();
+}
+
+
+
+// INIT
 void TXT_INIT() {
   loadMarkdownFile("/markdownTest.txt");
   OLED().oledWord("FILE LOADED");
@@ -648,18 +724,19 @@ void einkHandler_TXT_NEW() {
   }
 }
 
+
 void processKB_TXT_NEW() {
   int currentMillis = millis();
   //Make sure oled only updates at 10FPS
   if (currentMillis - OLEDFPSMillis >= (1000/10 /*OLED_MAX_FPS*/)) {
     OLEDFPSMillis = currentMillis;
-    OLED().oledLine(currentLine, false);
+    //OLED().oledLine(currentLine, false);
   }
   
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
     // update scroll
     updateScroll();
-    currentLine = String(lineScroll) + "/" + String(getTotalDisplayLines());
+    //currentLine = String(lineScroll) + "/" + String(getTotalDisplayLines());
 
     char inchar = updateKeypress();
     // HANDLE INPUTS
@@ -668,9 +745,179 @@ void processKB_TXT_NEW() {
     // Home recieved
     else if (inchar == 12 || inchar == 8) {
       CurrentAppState = HOME;
-      currentLine     = "";
+      //currentLine     = "";
       newState        = true;
       CurrentKBState  = NORMAL;
     }
   }
 }
+
+/*
+void processKB_TXT_NEW() {
+  if (OLEDPowerSave) {
+    u8g2.setPowerSave(0);
+    OLEDPowerSave = false;
+  }
+
+  disableTimeout = false;
+
+  unsigned long currentMillis = millis();
+  if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
+    char inchar = updateKeypress();
+    switch (CurrentTXTState_NEW) {
+      case TXT_:
+        // SET MAXIMUMS AND FONT
+        EINK().setTXTFont(EINK().getCurrentFont());
+
+        // UPDATE SCROLLBAR
+        updateScrollFromTouch();
+
+        // HANDLE INPUTS
+        //No char recieved
+        if (inchar == 0);  
+        else if (inchar == 12) {
+          CurrentAppState = HOME;
+          currentLine     = "";
+          newState        = true;
+          CurrentKBState  = NORMAL;
+        }
+        //TAB Recieved
+        else if (inchar == 9) {                                  
+          currentLine += "    ";
+        }                                      
+        //SHIFT Recieved
+        else if (inchar == 17) {                                  
+          if (CurrentKBState == SHIFT) CurrentKBState = NORMAL;
+          else CurrentKBState = SHIFT;
+        }
+        //FN Recieved
+        else if (inchar == 18) {                                  
+          if (CurrentKBState == FUNC) CurrentKBState = NORMAL;
+          else CurrentKBState = FUNC;
+        }
+        //Space Recieved
+        else if (inchar == 32) {                                  
+          currentLine += " ";
+        }
+        //CR Recieved
+        else if (inchar == 13) {                          
+          allLines.push_back(currentLine);
+          currentLine = "";
+          newLineAdded = true;
+        }
+        //ESC / CLEAR Recieved
+        else if (inchar == 20) {                                  
+          allLines.clear();
+          currentLine = "";
+          OLED().oledWord("Clearing...");
+          doFull = true;
+          newLineAdded = true;
+          delay(300);
+        }
+        // LEFT
+        else if (inchar == 19) {                                  
+          
+        }
+        // RIGHT
+        else if (inchar == 21) {                                  
+          
+        }
+        //BKSP Recieved
+        else if (inchar == 8) {                  
+          if (currentLine.length() > 0) {
+            currentLine.remove(currentLine.length() - 1);
+          }
+        }
+        //SAVE Recieved
+        else if (inchar == 6) {
+          //File exists, save normally
+          if (editingFile != "" && editingFile != "-") {
+            saveFile();
+            CurrentKBState = NORMAL;
+            newLineAdded = true;
+          }
+          //File does not exist, make a new one
+          else {
+            CurrentTXTState = WIZ3;
+            currentLine = "";
+            CurrentKBState = NORMAL;
+            doFull = true;
+            newState = true;
+          }
+        }
+        //LOAD Recieved
+        else if (inchar == 5) {
+          loadFile();
+          CurrentKBState = NORMAL;
+          newLineAdded = true;
+        }
+        //FILE Recieved
+        else if (inchar == 7) {
+          CurrentTXTState = WIZ0;
+          CurrentKBState = NORMAL;
+          newState = true;
+        }
+        // Font Switcher 
+        else if (inchar == 14) {                                  
+          CurrentTXTState = FONT;
+          CurrentKBState = FUNC;
+          newState = true;
+        }
+        else {
+          currentLine += inchar;
+          if (inchar >= 48 && inchar <= 57) {}  //Only leave FN on if typing numbers
+          else if (CurrentKBState != NORMAL) {
+            CurrentKBState = NORMAL;
+          }
+        }
+
+        currentMillis = millis();
+        //Make sure oled only updates at 60fps
+        if (currentMillis - OLEDFPSMillis >= (1000/60)) {
+          OLEDFPSMillis = currentMillis;
+          // ONLY SHOW OLEDLINE WHEN NOT IN SCROLL MODE
+          if (lastTouch == -1) {
+            OLED().oledLine(currentLine);
+            if (prev_dynamicScroll != dynamicScroll) prev_dynamicScroll = dynamicScroll;
+          }
+          else OLED().oledScroll();
+        }
+
+        if (currentLine.length() > 0) {
+          int16_t x1, y1;
+          uint16_t charWidth, charHeight;
+          display.getTextBounds(currentLine, 0, 0, &x1, &y1, &charWidth, &charHeight);
+
+          if (charWidth >= display.width()-5) {
+            // If currentLine ends with a space, just start a new line
+            if (currentLine.endsWith(" ")) {
+              allLines.push_back(currentLine);
+              currentLine = "";
+            }
+            // If currentLine ends with a letter, we are in the middle of a word
+            else {
+              int lastSpace = currentLine.lastIndexOf(' ');
+              String partialWord;
+
+              if (lastSpace != -1) {
+                partialWord = currentLine.substring(lastSpace + 1);
+                currentLine = currentLine.substring(0, lastSpace);  // Strip partial word
+                allLines.push_back(currentLine);
+                currentLine = partialWord;  // Start new line with the partial word
+              } 
+              // No spaces found, whole line is a single word
+              else {
+                allLines.push_back(currentLine);
+                currentLine = "";
+              }
+            }
+            newLineAdded = true;
+          }
+        }
+
+        break;
+    }
+  }
+}
+
+*/

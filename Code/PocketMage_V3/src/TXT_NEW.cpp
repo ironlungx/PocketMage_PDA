@@ -9,6 +9,7 @@
 #include <pocketmage.h>
 
 static String currentLine = "";
+static bool updateScreen = false;
 
 // Font includes
 // Mono
@@ -357,11 +358,18 @@ struct DocLine {
   
   // Display this DocLine
   int displayLine(int startX, int startY) {
+    int cursorY = startY;
+
+    // Horizontal Rules just print a line
+    if (style == 'H') {
+      display.drawFastHLine(0, cursorY + 1, display.width(), GxEPD_BLACK);
+      display.drawFastHLine(0, cursorY + 2, display.width(), GxEPD_BLACK);
+      return 4;
+    }
+
     // Lists and Blockquotes are padded on the left
     if (style =='>' || style == '-' || style == 'L') startX += SPECIAL_PADDING;
     else if (style == 'C') startX += (SPECIAL_PADDING/2);
-
-    int cursorY = startY;
 
     for (auto &ln : lines) {
       if (ln.index < lineScroll) continue; // skip lines above scroll
@@ -555,6 +563,55 @@ int displayDocument(int startX = 0, int startY = 0) {
   return cursorY - startY;
 }
 
+// Scroll
+void updateScroll() {
+  static int lastTouchPos = -1;
+  static unsigned long lastTouchTime = 0;
+  static int prev_dynamicScroll = 0;
+
+  uint16_t touched = cap.touched();  // Read touch state
+  int touchPos = -1;
+
+  // Find the first active touch point (lowest index first)
+  for (int i = 0; i < 9; i++) {
+    if (touched & (1 << i)) {
+      touchPos = i;
+      Serial.print("Prev pad: ");
+      Serial.print(lastTouchPos);
+      Serial.print("   Touched pad: ");
+      Serial.println(touchPos);
+      break;
+    }
+  }
+
+  unsigned long currentTime = millis();
+
+  if (touchPos != -1) {  // If a touch is detected
+    Serial.println("Touch Detected");
+    if (lastTouchPos != -1) {  // Compare with previous touch
+      int touchDelta = abs(touchPos - lastTouchPos);
+      if (touchDelta <= 2) {  // Ignore large jumps (adjust threshold if needed)
+        int maxScroll = max(0, (int)docLines.size() - EINK().maxLines());
+        if (touchPos > lastTouchPos && lineScroll < maxScroll) {
+          prev_dynamicScroll = lineScroll;
+          lineScroll++;
+        } else if (touchPos < lastTouchPos && lineScroll > 0) {
+          prev_dynamicScroll = lineScroll;
+          lineScroll--;
+        }
+      }
+    }
+    lastTouchPos = touchPos;  // Always update lastTouchPos
+    lastTouchTime = currentTime;  // Reset timeout timer
+  } 
+  else if (lastTouchPos != -1 && (currentTime - lastTouchTime > TOUCH_TIMEOUT_MS)) {
+    // RESET LASTTOUCHPOS AFTER TIMEOUT
+    lastTouchPos = -1;
+    // ONLY UPDATE IF SCROLL HAS CHANGED
+    if (prev_dynamicScroll != lineScroll) updateScreen = true;
+  }
+}
+
 void TXT_INIT() {
   loadMarkdownFile("/markdownTest.txt");
   OLED().oledWord("FILE LOADED");
@@ -565,14 +622,14 @@ void TXT_INIT() {
 
   CurrentAppState = TXT;
   lineScroll = 0;
-  newState = true;
+  updateScreen = true;
 }
 
 void einkHandler_TXT_NEW() {
-  if (newState) {
+  if (updateScreen) {
     OLED().oledWord("DISPLAYING TXT");
 
-    newState = false;
+    updateScreen = false;
     display.setFullWindow();
     display.fillScreen(GxEPD_WHITE);
     displayDocument();
@@ -589,6 +646,9 @@ void processKB_TXT_NEW() {
   }
   
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
+    // update scroll
+
+
     char inchar = updateKeypress();
     // HANDLE INPUTS
     //No char recieved

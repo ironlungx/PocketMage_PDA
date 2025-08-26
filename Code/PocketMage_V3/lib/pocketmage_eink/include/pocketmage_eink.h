@@ -39,11 +39,11 @@ public:
   explicit PocketmageEink(DisplayT& display);
 
   // Wire up external buffers/state used to read from globals
-  void setTextBuffer(std::vector<String>* lines)  { lines_ = lines; };               // reference to allLines
-  void setEditingFilePtr(String* editingFile)     { editingFile_ = editingFile; };               // reference to editingFile string
-  void setDynamicScroll(volatile long* dynamicScroll)     { dynamicScroll_ = dynamicScroll; };     // reference to dynamicScroll
-  void setLineSpacing(uint8_t lineSpacing) { lineSpacing_ = lineSpacing; };                                 // reference to lineSpacing (default 6)
-  void setFullRefreshAfter(uint8_t fullRefreshAfter) { fullRefreshAfter_ = fullRefreshAfter; };                              // reference to FULL_REFRESH_AFTER (default 5)
+  void setTextBuffer(std::vector<String>* lines)                            { lines_ = lines; };               // reference to allLines
+  void setEditingFilePtr(String* editingFile)                   { editingFile_ = editingFile; };               // reference to editingFile string
+  void setDynamicScroll(volatile long* dynamicScroll)       { dynamicScroll_ = dynamicScroll; };     // reference to dynamicScroll
+  void setLineSpacing(uint8_t lineSpacing)                      { lineSpacing_ = lineSpacing; };                                 // reference to lineSpacing (default 6)
+  void setFullRefreshAfter(uint8_t fullRefreshAfter)  { fullRefreshAfter_ = fullRefreshAfter; };                              // reference to FULL_REFRESH_AFTER (default 5)
   void setCurrentFont(const GFXfont* font){
   if (currentFont_ == font) return; 
     currentFont_ = font;
@@ -70,22 +70,22 @@ public:
 
 
 private:
-  DisplayT& display_; // class reference to hardware display object
-  bool    forceSlowFullUpdate_ = false;
-  uint8_t partialCounter_ = 0;
-  const GFXfont* currentFont_ = nullptr;
-  uint8_t fullRefreshAfter_ = FULL_REFRESH_AFTER;
+  DisplayT&             display_; // class reference to hardware display object
+  bool                  forceSlowFullUpdate_ = false;
+  uint8_t               partialCounter_      = 0;
+  const GFXfont*        currentFont_         = nullptr;
+  uint8_t               fullRefreshAfter_    = FULL_REFRESH_AFTER;
 
-  std::vector<String>* lines_ = nullptr;
-  String* editingFile_ = nullptr;
+  std::vector<String>*  lines_               = nullptr;
+  String*               editingFile_         = nullptr;
 
-  volatile long* dynamicScroll_ = nullptr;
+  volatile long*        dynamicScroll_       = nullptr;
 
   // font metrics
-  uint8_t lineSpacing_ = 6;
-  uint8_t maxCharsPerLine_ = 0;
-  uint8_t maxLines_        = 0;
-  uint8_t fontHeight_      = 0;
+  uint8_t               lineSpacing_         = 6;
+  uint8_t               maxCharsPerLine_     = 0;
+  uint8_t               maxLines_            = 0;
+  uint8_t               fontHeight_          = 0;
 };
 
 void wireEink();

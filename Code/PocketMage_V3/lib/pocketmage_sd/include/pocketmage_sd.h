@@ -9,11 +9,6 @@
 #include <Arduino.h>
 #include <FS.h>
 
-class PocketmageSD;
-void wireSD();
-void setupSD();
-PocketmageSD& SD();
-
 // forward-declaration to avoid including U8g2lib.h, GxEPD2_BW.h, pocketmage_oled.h, and pocketmage_eink.h
 class PocketmageOled;
 class PocketmageEink;
@@ -60,3 +55,7 @@ private:
   volatile bool*                noSD_             = nullptr;
   bool*                         noTimeout_        = nullptr; 
 };
+
+void wireSD();
+void setupSD();
+PocketmageSD& SD();

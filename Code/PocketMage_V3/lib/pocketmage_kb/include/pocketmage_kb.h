@@ -34,9 +34,9 @@ public:
 private:
   Adafruit_TCA8418      &keypad_; // class reference to hardware keypad object
 
-  volatile bool*        TCA8418_event_ = nullptr;
-  int*                  kbState_       = nullptr;
-  KbStateFn             kbStateFn_     = nullptr;
+  volatile bool*        TCA8418_event_  = nullptr;
+  int*                  kbState_        = nullptr;
+  KbStateFn             kbStateFn_      = nullptr;
 
   volatile int*         prevTimeMillis_ =  nullptr;
 

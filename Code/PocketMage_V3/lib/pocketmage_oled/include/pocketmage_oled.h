@@ -60,7 +60,7 @@ public:
   void infoBar();
 
 private:
-  U8G2                  &u8g2_; // class reference to hardware oled object
+  U8G2                  &u8g2_;        // class reference to hardware oled object
 
   std::vector<String>*  lines_         = nullptr;
   volatile long*        dynamicScroll_ = nullptr;
@@ -83,8 +83,8 @@ private:
   const uint8_t*        scrollBmp_     = nullptr;
 
   uint16_t              refWidth_      = 320;   
-  MeasureTextFn         measure_;               // measure of display text width in e-ink pixels
-  MaxCharsFn            maxCharsFn_;            // measure   
+  MeasureTextFn         measure_;      // measure of display text width in e-ink pixels
+  MaxCharsFn            maxCharsFn_;   // measure   
   // helpers
   uint16_t strWidth(const String& s) const;
   int currentKbState() const;

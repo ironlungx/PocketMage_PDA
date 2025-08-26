@@ -11,6 +11,7 @@
 // Initialization of eink display class
 static PocketmageEink eink(display);
 
+// Setup for Eink Class
 void setupEink() {
   wireEink();
   display.init(115200);
@@ -31,7 +32,8 @@ void setupEink() {
 
 }
 
-// Wire function 
+// Wire function  for Eink classa
+// add any global references here + add set function to class header file
 void wireEink() {
   eink.setTextBuffer(&allLines);
   eink.setEditingFilePtr(&editingFile);
@@ -39,5 +41,5 @@ void wireEink() {
 }
 
 
-// Access for other apps
+// Access for other apps 
 PocketmageEink& EINK() { return eink; }

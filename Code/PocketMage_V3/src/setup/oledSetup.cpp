@@ -10,10 +10,13 @@
 #include <GxEPD2_BW.h>
 #include <RTClib.h>
 
-constexpr int kBattIconCount = sizeof(batt_allArray) / sizeof(batt_allArray[0]);
 
 // Initialization of oled display class
 static PocketmageOled oled(u8g2);
+
+
+constexpr int kBattIconCount = sizeof(batt_allArray) / sizeof(batt_allArray[0]);
+
 
 // e-ink text width wrapper to work with Eink display
 static uint16_t einkMeasureWidth(const String& s) {
@@ -22,6 +25,7 @@ static uint16_t einkMeasureWidth(const String& s) {
   return w;
 }
 
+// Setup for Oled Class
 void setupOled() {
   u8g2.begin();
   u8g2.setBusClock(10000000);
@@ -34,12 +38,14 @@ void setupOled() {
   OLED().oledWord("   PocketMage   ", true, false);
 }
 
-// wire up oled class to globals
+// Wire function  for Oled class
+// add any global references here + add set function to class header file
 void wireOled() {
   oled.setAllLines(&allLines);
   oled.setDynamicScroll(&dynamicScroll);
   oled.setBattery(&battState, batt_allArray, kBattIconCount);
-  oled.setKeyboardStateGetter([] { return static_cast<int>(CurrentKBState); });
+  // lamda to avoid redundant functions To Do: make class interface for each pocketmage component in library
+  oled.setKeyboardStateGetter([]{ return static_cast<int>(CurrentKBState); });
   oled.setMSC(&mscEnabled);
   oled.setSD(&SDActive);
   oled.setScrollBitmap(scrolloled0);

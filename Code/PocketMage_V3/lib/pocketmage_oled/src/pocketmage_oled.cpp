@@ -5,22 +5,10 @@
 //  888      888  888          888    "     888      888  //
 //  `88b    d88'  888       o  888       o  888     d88'  //
 //   `Y8bood8P'  o888ooooood8 o888ooooood8 o888bood8P'    //
+
 #include <pocketmage_oled.h>
 
-// COMPUTE STRING WIDTH IN EINK PIXELS
-uint16_t PocketmageOled::strWidth(const String& s) const {
-  // Fallback: map u8g2 width to the reference width
-  if (measure_) return measure_(s);
-  float scale = refWidth_ / (float)u8g2_.getDisplayWidth();
-  return (uint16_t)(u8g2_.getStrWidth(s.c_str()) * scale);
-}
-
-int PocketmageOled::currentKbState() const {
-  if (kbStateFn_) return kbStateFn_();
-  if (kbState_)   return *kbState_;
-  return 0;
-}
-
+// ===================== public functions =====================
 void PocketmageOled::oledWord(String word, bool allowLarge, bool showInfo) {
   u8g2_.clearBuffer();
 
@@ -253,4 +241,19 @@ void PocketmageOled::oledScroll() {
 
   // SEND BUFFER 
   u8g2_.sendBuffer();
+}
+
+// ===================== private functions =====================
+// COMPUTE STRING WIDTH IN EINK PIXELS
+uint16_t PocketmageOled::strWidth(const String& s) const {
+  // Fallback: map u8g2 width to the reference width
+  if (measure_) return measure_(s);
+  float scale = refWidth_ / (float)u8g2_.getDisplayWidth();
+  return (uint16_t)(u8g2_.getStrWidth(s.c_str()) * scale);
+}
+// REFERENCE CURRENT KEYBOARD STATE
+int PocketmageOled::currentKbState() const {
+  if (kbStateFn_) return kbStateFn_();
+  if (kbState_)   return *kbState_;
+  return 0;
 }

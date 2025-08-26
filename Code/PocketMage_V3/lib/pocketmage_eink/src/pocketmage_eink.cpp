@@ -5,28 +5,12 @@
 //   888    "             888   8     `88b.8   888`88b.     //
 //   888       o          888   8       `888   888  `88b.   //
 //  o888ooooood8         o888o o8o        `8  o888o  o888o  //
+
 #include <pocketmage_eink.h>
 
 PocketmageEink::PocketmageEink(DisplayT& d) : display_(d) {}
 
-// functions for wiring up external state
-void PocketmageEink::setTextBuffer(std::vector<String>* lines)  { lines_ = lines; }
-void PocketmageEink::setEditingFilePtr(String* f)               { editingFile_ = f; }
-void PocketmageEink::setDynamicScroll(volatile long* p)         { dynamicScroll_ = p; }
-void PocketmageEink::setLineSpacing(uint8_t px)                 { lineSpacing_ = px; }
-void PocketmageEink::setFullRefreshAfter(uint8_t n)             { fullRefreshAfter_ = n; }
-void PocketmageEink::forceSlowFullUpdate(bool force)            { forceSlowFullUpdate_ = force; }
-void PocketmageEink::setCurrentFont(const GFXfont* font) {
-if (currentFont_ == font) return; 
-  currentFont_ = font;
-}
-
-// getters
-const GFXfont* PocketmageEink::getCurrentFont() { return currentFont_; }
-uint8_t PocketmageEink::maxCharsPerLine() const { return maxCharsPerLine_; }
-uint8_t PocketmageEink::maxLines()        const { return maxLines_; }
-
-// main methods
+// ===================== main functions =====================
 void PocketmageEink::refresh() {
   // USE A SLOW FULL UPDATE EVERY N FAST UPDATES OR WHEN SPECIFIED
   if ((partialCounter_ >= fullRefreshAfter_) || forceSlowFullUpdate_) {
@@ -165,3 +149,9 @@ int PocketmageEink::countLines(const String& input, size_t maxLineLength) {
 
   return lineCounter;
 }
+void PocketmageEink::forceSlowFullUpdate(bool force)            { forceSlowFullUpdate_ = force; }
+
+// ===================== getter functions =====================
+const GFXfont* PocketmageEink::getCurrentFont() { return currentFont_; }
+uint8_t PocketmageEink::maxCharsPerLine() const { return maxCharsPerLine_; }
+uint8_t PocketmageEink::maxLines()        const { return maxLines_; }

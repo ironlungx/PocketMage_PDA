@@ -162,12 +162,11 @@ extern HOMEState CurrentHOMEState;            // Current home state
 // ===================== FUNCTION PROTOTYPES =====================
 // <sysFunc.cpp>
 // SYSTEM
+// migrate to pocketmage_sys (planned)
 void checkTimeout();
 void PWR_BTN_irq();
-/* migrated to pocketmage_keypad.h
-void TCA8418_irq();
-char updateKeypress();
-*/
+//void TCA8418_irq(); // migrated to pocketmage_keypad.h
+//char updateKeypress(); // migrated to pocketmage_keypad.h
 void printDebug();
 String vectorToString();
 void stringToVector(String inputText);
@@ -183,7 +182,7 @@ void updateBattState();
 String removeChar(String str, char character);
 void appendToFile(String path, String inText);
 void setCpuSpeed(int newFreq);
-//void playJingle(String jingle); //migrated to pocketmage_bz.h
+//void playJingle(String jingle); // migrated to pocketmage_bz.h
 void deepSleep(bool alternateScreenSaver = false);
 void loadState(bool changeState = true);
 int stringToInt(String str);

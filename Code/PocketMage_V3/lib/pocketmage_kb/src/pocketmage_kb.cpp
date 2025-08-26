@@ -1,6 +1,14 @@
+// dP     dP  88888888b dP    dP  888888ba   .88888.   .d888888   888888ba  888888ba  //
+// 88   .d8'  88        Y8.  .8P  88    `8b d8'   `8b d8'    88   88    `8b 88    `8b //
+// 88aaa8P'  a88aaaa     Y8aa8P  a88aaaa8P' 88     88 88aaaaa88a a88aaaa8P' 88     88 //
+// 88   `8b.  88           88     88   `8b. 88     88 88     88   88   `8b. 88     88 //
+// 88     88  88           88     88    .88 Y8.   .8P 88     88   88     88 88    .8P //
+// dP     dP  88888888P    dP     88888888P  `8888P'  88     88   dP     dP 8888888P  //
+                    
 #include <pocketmage_kb.h>
 #include <Adafruit_TCA8418.h>
-
+#pragma region keymaps
+// ===================== Keymaps =====================
 char currentKB[4][10];            // Current keyboard layout
 
 char keysArray[4][10] = {
@@ -21,17 +29,9 @@ char keysArrayFN[4][10] = {
     {  14, '%', '_', '&', '+', '-', '/',  '?',  ',',  13 },
     {   0,  17,  18, ' ', ' ', ' ',  12,    7,    6,   0 }
 };
+#pragma endregion
 
-int PocketmageKB::currentKbState() const {
-  if (kbStateFn_) return kbStateFn_();
-  if (kbState_)   return *kbState_;
-  return 0;
-}
-
-void PocketmageKB::TCA8418_irq() {
-  if (TCA8418_event_) *TCA8418_event_ = true;
-}
-
+// ===================== public functions =====================
 char PocketmageKB::updateKeypress() {
   if ((TCA8418_event_) && (*TCA8418_event_ == true)) {
     int k = keypad_.getEvent();
@@ -67,4 +67,17 @@ char PocketmageKB::updateKeypress() {
 
   return 0;
 
+}
+
+// ===================== private functions =====================
+int PocketmageKB::currentKbState() const {
+  if (kbStateFn_) return kbStateFn_();
+  if (kbState_)   return *kbState_;
+  return 0;
+}
+
+// ===================== ISR =====================
+// Interrupt handler stored in IRAM for fast interrupt response
+void IRAM_ATTR PocketmageKB::TCA8418_irq() {
+  if (TCA8418_event_) *TCA8418_event_ = true;
 }

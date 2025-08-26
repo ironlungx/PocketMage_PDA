@@ -1,3 +1,10 @@
+// .d88888b  888888ba  //
+// 88.    "' 88    `8b //
+// `Y88888b. 88     88 //
+//       `8b 88     88 //
+// d8'   .8P 88    .8P //
+//  Y88888P  8888888P  //
+
 #pragma once
 #include <Arduino.h>
 #include <FS.h>
@@ -7,9 +14,11 @@ void wireSD();
 void setupSD();
 PocketmageSD& SD();
 
+// forward-declaration to avoid including U8g2lib.h, GxEPD2_BW.h, pocketmage_oled.h, and pocketmage_eink.h
 class PocketmageOled;
 class PocketmageEink;
 
+// ===================== SD CLASS =====================
 class PocketmageSD {
 public:
   explicit PocketmageSD() {}
@@ -25,6 +34,7 @@ public:
   void setNoSD(volatile bool* noSD)           {noSD_ = noSD;}                           // reference to noSD
   void setNoTimeout(bool* noTimeout)         {noTimeout_ = noTimeout;}                 // reference to noTimeout
 
+  // Main methods  To Do: remove arguments for fs::FS &fs and reference internal fs::FS* instead
   void listDir(fs::FS &fs, const char *dirname);
   void readFile(fs::FS &fs, const char *path);
   String readFileToString(fs::FS &fs, const char *path);
@@ -34,7 +44,7 @@ public:
   void deleteFile(fs::FS &fs, const char *path);
 
 private:
-  fs::FS*                       fileSys_          = nullptr;    // pass &SD_MMC
+  fs::FS*                       fileSys_          = nullptr;    // class reference to sd file system object
 
   PocketmageOled*               oled_             = nullptr;
   PocketmageEink*               eink_             = nullptr;

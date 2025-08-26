@@ -1,10 +1,17 @@
+// .d88888b  888888ba  //
+// 88.    "' 88    `8b //
+// `Y88888b. 88     88 //
+//       `8b 88     88 //
+// d8'   .8P 88    .8P //
+//  Y88888P  8888888P  //
+
 #include <pocketmage_sd.h>
 #include <pocketmage_oled.h> 
 #include <pocketmage_eink.h> 
 #include <config.h> // for FULL_REFRESH_AFTER
 
-
-// Low-Level SDMMC Operations switch to using injected fs::FS*
+// ===================== main functions =====================
+// Low-Level SDMMC Operations switch to using internal fs::FS*
 void PocketmageSD::listDir(fs::FS &fs, const char *dirname) {
   if (noSD_ && *noSD_) {
     if (oled_) oled_->oledWord("OP FAILED - No SD!");
@@ -64,7 +71,6 @@ void PocketmageSD::listDir(fs::FS &fs, const char *dirname) {
     //if (SAVE_POWER) setCpuFrequencyMhz(40);
   }
 }
-
 void PocketmageSD::readFile(fs::FS &fs, const char *path) {
   if (noSD_ && *noSD_) {
     if (oled_) oled_->oledWord("OP FAILED - No SD!");
@@ -93,7 +99,6 @@ void PocketmageSD::readFile(fs::FS &fs, const char *path) {
     //if (SAVE_POWER) setCpuFrequencyMhz(40);
   }
 }
-
 String PocketmageSD::readFileToString(fs::FS &fs, const char *path) {
   if (noSD_ && *noSD_) {
     if (oled_) oled_->oledWord("OP FAILED - No SD!");
@@ -129,7 +134,6 @@ String PocketmageSD::readFileToString(fs::FS &fs, const char *path) {
     return content;  // Return the complete String
   }
 }
-
 void PocketmageSD::writeFile(fs::FS &fs, const char *path, const char *message) {
   if (noSD_ && *noSD_) {
     if (oled_) oled_->oledWord("OP FAILED - No SD!");
@@ -160,7 +164,6 @@ void PocketmageSD::writeFile(fs::FS &fs, const char *path, const char *message) 
     //if (SAVE_POWER) setCpuFrequencyMhz(40);
   }
 }
-
 void PocketmageSD::appendFile(fs::FS &fs, const char *path, const char *message) {
   if (noSD_ && *noSD_) {
     if (oled_) oled_->oledWord("OP FAILED - No SD!");
@@ -190,7 +193,6 @@ void PocketmageSD::appendFile(fs::FS &fs, const char *path, const char *message)
     //if (SAVE_POWER) setCpuFrequencyMhz(40);
   }
 }
-
 void PocketmageSD::renameFile(fs::FS &fs, const char *path1, const char *path2) {
   if (noSD_ && *noSD_) {
     if (oled_) oled_->oledWord("OP FAILED - No SD!");
@@ -212,7 +214,6 @@ void PocketmageSD::renameFile(fs::FS &fs, const char *path1, const char *path2) 
     //if (SAVE_POWER) setCpuFrequencyMhz(40);
   }
 }
-
 void PocketmageSD::deleteFile(fs::FS &fs, const char *path) {
   if (noSD_ && *noSD_) {
     if (oled_) oled_->oledWord("OP FAILED - No SD!");

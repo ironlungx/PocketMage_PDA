@@ -4,6 +4,11 @@
 // Initialization of sd class
 static PocketmageSD sd;
 
+// Setup for SD Class
+// @ dependencies:
+//   - setupOled()
+//   - setupBZ()
+//   - setupEINK()
 void setupSD() {
   SD_MMC.setPins(SD_CLK, SD_CMD, SD_D0);
   if (!SD_MMC.begin("/sdcard", true) || SD_MMC.cardType() == CARD_NONE) {
@@ -55,7 +60,8 @@ void setupSD() {
 
 }
 
-// Wire function 
+// Wire function  for SD class
+// add any global references here + add set function to class header file
 void wireSD() {
     sd.setFileSys(&SD_MMC);
     sd.setOled(OLED());

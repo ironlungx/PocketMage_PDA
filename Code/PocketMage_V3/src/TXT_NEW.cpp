@@ -649,7 +649,7 @@ void processKB_TXT_NEW() {
     // update scroll
 
 
-    char inchar = updateKeypress();
+    char inchar = KB().updateKeypress();
     // HANDLE INPUTS
     //No char recieved
     if (inchar == 0);   

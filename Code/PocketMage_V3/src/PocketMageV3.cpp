@@ -11,15 +11,6 @@
 //   .8'     `888.   888          888         oo     .d8P  //
 //  o88o     o8888o o888o        o888o        8""88888P'   //
 
-void einkHandler(void* parameter) {
-  vTaskDelay(pdMS_TO_TICKS(250)); 
-  for (;;) {
-    applicationEinkHandler();
-
-    vTaskDelay(pdMS_TO_TICKS(50));
-    yield();
-  }
-}
 
 // ADD E-INK HANDLER APP SCRIPTS HERE
 void applicationEinkHandler() {
@@ -57,7 +48,16 @@ void applicationEinkHandler() {
       break;
   }
 }
+// migrated from einkFunc.cpp
+void einkHandler(void* parameter) {
+  vTaskDelay(pdMS_TO_TICKS(250)); 
+  for (;;) {
+    applicationEinkHandler();
 
+    vTaskDelay(pdMS_TO_TICKS(50));
+    yield();
+  }
+}
 // ADD PROCESS/KEYBOARD APP SCRIPTS HERE
 void processKB() {
   switch (CurrentAppState) {
@@ -109,7 +109,7 @@ void setup() {
   Serial.begin(115200);
   Wire.begin(I2C_SDA, I2C_SCL);
   SPI.begin(SPI_SCK, -1, SPI_MOSI, -1);
-
+  // setupSys() to begin here
   // OLED SETUP
   setupOled();
 
@@ -142,7 +142,7 @@ void setup() {
   // SET CPU CLOCK FOR POWER SAVE MODE
   if (SAVE_POWER) setCpuFrequencyMhz(40 );
   else            setCpuFrequencyMhz(240);
-
+  // setupCAP() to begin here
   // MPR121 / SLIDER
   if (!cap.begin(MPR121_ADDR)) {
     Serial.println("TouchPad Failed");
@@ -150,7 +150,7 @@ void setup() {
     delay(1000);
   }
   cap.setAutoconfig(true);
-  
+  // setupRTC() to begin here
   // RTC SETUP
   pinMode(RTC_INT, INPUT);
   if (!rtc.begin()) {
@@ -164,6 +164,7 @@ void setup() {
 
   // Set "random" seed
   randomSeed(analogRead(BAT_SENS));
+  // end setupSys()
 }
 
 void loop() {

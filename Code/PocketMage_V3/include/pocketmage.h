@@ -6,3 +6,6 @@
 #include <pocketmage_sd.h>
 #include <pocketmage_kb.h>
 #include <pocketmage_bz.h>
+//#include <pocketmage_cap.h> // planned
+//#include <pocketmage_rtc.h> // planned
+//#include <pocketmage_sys.h> // planned

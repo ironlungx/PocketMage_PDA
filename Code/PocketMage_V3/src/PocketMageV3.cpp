@@ -224,6 +224,7 @@ void setup() {
     OLED().oledWord("TouchPad Failed");
     delay(1000);
   }
+  cap.setAutoconfig(true);
 
   // RTC SETUP
   pinMode(RTC_INT, INPUT);

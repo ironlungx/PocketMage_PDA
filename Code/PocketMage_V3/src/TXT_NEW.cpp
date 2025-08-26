@@ -316,7 +316,6 @@ struct DocLine {
   void splitToLines() {
     uint16_t textWidth = display.width();
 
-    // These styles need larger margin
     if (style == '>' || style == '-' || style == 'L' || style == 'C') {
       textWidth -= SPECIAL_PADDING;
     }
@@ -333,12 +332,14 @@ struct DocLine {
       uint16_t wpx, hpx;
       display.getTextBounds(w.text.c_str(), 0, 0, &x1, &y1, &wpx, &hpx);
 
-      // space width in current font
       int spaceWidth;
       display.getTextBounds(SPACEWIDTH_SYMBOL, 0, 0, &x1, &y1, (uint16_t*)&spaceWidth, &hpx);
 
-      if (lineWidth + wpx > textWidth && !currentLine.words.empty()) {
-        // finalize line
+      // Calculate width for this word plus space
+      int addWidth = wpx + spaceWidth + 12; // IDK why 12 makes the text wrap work perfectly...
+
+      // If the word doesn't fit, start a new line
+      if (lineWidth > 0 && (lineWidth + addWidth > textWidth)) {
         currentLine.index = indexCounter++;
         lines.push_back(currentLine);
 
@@ -347,7 +348,7 @@ struct DocLine {
       }
 
       currentLine.words.push_back(w);
-      lineWidth += wpx + spaceWidth;
+      lineWidth += addWidth;
     }
 
     if (!currentLine.words.empty()) {
@@ -362,9 +363,9 @@ struct DocLine {
 
     // Horizontal Rules just print a line
     if (style == 'H') {
-      display.drawFastHLine(0, cursorY + 1, display.width(), GxEPD_BLACK);
-      display.drawFastHLine(0, cursorY + 2, display.width(), GxEPD_BLACK);
-      return 4;
+      display.drawFastHLine(0, cursorY + 3, display.width(), GxEPD_BLACK);
+      display.drawFastHLine(0, cursorY + 4, display.width(), GxEPD_BLACK);
+      return 8;
     }
 
     // Lists and Blockquotes are padded on the left
@@ -545,6 +546,15 @@ void loadMarkdownFile(const String &path) {
   SDActive = false;
 }
 
+// Count number of display lines
+int getTotalDisplayLines() {
+  int total = 0;
+  for (const auto& doc : docLines) {
+      total += doc.lines.size();
+  }
+  return total;
+}
+
 // Display the entire document
 int displayDocument(int startX = 0, int startY = 0) {
   int cursorY = startY;
@@ -567,7 +577,7 @@ int displayDocument(int startX = 0, int startY = 0) {
 void updateScroll() {
   static int lastTouchPos = -1;
   static unsigned long lastTouchTime = 0;
-  static int prev_dynamicScroll = 0;
+  static int prev_lineScroll = 0;
 
   uint16_t touched = cap.touched();  // Read touch state
   int touchPos = -1;
@@ -591,12 +601,13 @@ void updateScroll() {
     if (lastTouchPos != -1) {  // Compare with previous touch
       int touchDelta = abs(touchPos - lastTouchPos);
       if (touchDelta <= 2) {  // Ignore large jumps (adjust threshold if needed)
-        int maxScroll = max(0, (int)docLines.size() - EINK().maxLines());
-        if (touchPos > lastTouchPos && lineScroll < maxScroll) {
-          prev_dynamicScroll = lineScroll;
+        int maxScroll = getTotalDisplayLines();
+        // REVERSED SCROLL DIRECTION:
+        if (touchPos < lastTouchPos && lineScroll < maxScroll) {
+          prev_lineScroll = lineScroll;
           lineScroll++;
-        } else if (touchPos < lastTouchPos && lineScroll > 0) {
-          prev_dynamicScroll = lineScroll;
+        } else if (touchPos > lastTouchPos && lineScroll > 0) {
+          prev_lineScroll = lineScroll;
           lineScroll--;
         }
       }
@@ -608,7 +619,7 @@ void updateScroll() {
     // RESET LASTTOUCHPOS AFTER TIMEOUT
     lastTouchPos = -1;
     // ONLY UPDATE IF SCROLL HAS CHANGED
-    if (prev_dynamicScroll != lineScroll) updateScreen = true;
+    if (prev_lineScroll != lineScroll) updateScreen = true;
   }
 }
 
@@ -647,7 +658,8 @@ void processKB_TXT_NEW() {
   
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
     // update scroll
-
+    updateScroll();
+    currentLine = String(lineScroll) + "/" + String(getTotalDisplayLines());
 
     char inchar = updateKeypress();
     // HANDLE INPUTS

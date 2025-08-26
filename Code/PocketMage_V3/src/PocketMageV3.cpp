@@ -150,6 +150,7 @@ void setup() {
     delay(1000);
   }
   cap.setAutoconfig(true);
+
   // setupRTC() to begin here
   // RTC SETUP
   pinMode(RTC_INT, INPUT);

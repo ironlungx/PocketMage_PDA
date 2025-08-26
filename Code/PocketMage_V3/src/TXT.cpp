@@ -16,7 +16,7 @@ String prevEditingFile = "";
 static String currentLine = "";
 static volatile bool doFull = false;
 
-void TXT_INIT() {
+void TXT_INIT_OLD() {
   if (editingFile != "") loadFile();
   CurrentAppState = TXT;
   CurrentTXTState = TXT_;
@@ -25,7 +25,7 @@ void TXT_INIT() {
   newLineAdded = true;
 }
 
-void processKB_TXT_NEW() {
+void processKB_TXT_OLD() {
   if (OLEDPowerSave) {
     u8g2.setPowerSave(0);
     OLEDPowerSave = false;
@@ -494,7 +494,7 @@ void processKB_TXT_NEW() {
   }
 }
 
-void einkHandler_TXT_NEW() {
+void einkHandler_TXT_OLD() {
   if (newLineAdded || newState) {
     switch (CurrentTXTState) {
       case TXT_:

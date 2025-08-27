@@ -17,7 +17,7 @@ void setupKB() {
   }
   keypad.matrix(4, 10);
   wireKB();
-  attachInterrupt(digitalPinToInterrupt(KB_IRQ), KB_irq_handler, CHANGE); // potentially change to FALLING
+  attachInterrupt(digitalPinToInterrupt(KB_IRQ), KB_irq_handler, FALLING);
   keypad.flush();
   keypad.enableInterrupts();
 }

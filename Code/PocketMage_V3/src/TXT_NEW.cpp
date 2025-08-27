@@ -1196,7 +1196,7 @@ void processKB_TXT_NEW() {
 
   unsigned long currentMillis = millis();
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-    char inchar = updateKeypress();
+    char inchar = KB().updateKeypress();
     switch (CurrentTXTState_NEW) {
       case TXT_:
         // update scroll

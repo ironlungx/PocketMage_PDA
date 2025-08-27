@@ -49,10 +49,13 @@
 enum TXTState_NEW { TXT_, WIZ0, WIZ1, WIZ2, WIZ3, FONT };
 TXTState_NEW CurrentTXTState_NEW = TXT_;
 
+#define TYPE_INTERFACE_TIMEOUT 5000 //ms
+
 // ------------------ Fonts ------------------
-#define SPECIAL_PADDING 20      // Padding for lists, code blocks, quote blocks
-#define SPACEWIDTH_SYMBOL "n"   // n is roughly the width of a space
-#define HEADING_LINE_PADDING 8  // Padding between each line
+#define SPECIAL_PADDING      20  // Padding for lists, code blocks, quote blocks
+#define SPACEWIDTH_SYMBOL    "n" // n is roughly the width of a space
+#define WORDWIDTH_BUFFER     12  // magic number to make word wrap work
+#define HEADING_LINE_PADDING 8   // Padding between each line
 #define NORMAL_LINE_PADDING  2   
 
 enum FontFamily { serif = 0, sans = 1, mono = 2 };
@@ -341,7 +344,7 @@ struct DocLine {
       display.getTextBounds(SPACEWIDTH_SYMBOL, 0, 0, &x1, &y1, (uint16_t*)&spaceWidth, &hpx);
 
       // Calculate width for this word plus space
-      int addWidth = wpx + spaceWidth + 12; // IDK why 12 makes the text wrap work perfectly...
+      int addWidth = wpx + spaceWidth + WORDWIDTH_BUFFER; // IDK why 12 makes the text wrap work perfectly...
 
       // If the word doesn't fit, start a new line
       if (lineWidth > 0 && (lineWidth + addWidth > textWidth)) {
@@ -476,6 +479,15 @@ void populateLines(std::vector<DocLine> &docLines) {
   }
 }
 
+void refreshAllLineIndexes() {
+  indexCounter = 0;  // reset counter if you want indexes to start from 0
+  for (auto &docLine : docLines) {          // iterate through all DocLines
+    for (auto &line : docLine.lines) {    // iterate through each LineObject
+      line.index = indexCounter++;
+    }
+  }
+}
+
 // Load File
 void loadMarkdownFile(const String &path) {
   if (noSD) {
@@ -561,22 +573,247 @@ void loadMarkdownFile(const String &path) {
   SDActive = false;
 }
 
+// Returns the pixel width of a LineObject (vector of wordObjects)
+int getLineWidth(const LineObject& lineObj, char style) {
+  int lineWidth = 0;
+  for (const auto& w : lineObj.words) {
+    const GFXfont *font = pickFont(style, w.bold, w.italic);
+    display.setFont(font);
 
+    int16_t x1, y1;
+    uint16_t wpx, hpx;
+    display.getTextBounds(w.text.c_str(), 0, 0, &x1, &y1, &wpx, &hpx);
 
-void editAppend() {
+    int spaceWidth;
+    display.getTextBounds(SPACEWIDTH_SYMBOL, 0, 0, &x1, &y1, (uint16_t*)&spaceWidth, &hpx);
+
+    // Add word width + space width (except after last word)
+    lineWidth += (wpx + WORDWIDTH_BUFFER);
+    if (&w != &lineObj.words.back()) {
+      lineWidth += spaceWidth;
+    }
+  }
+  return lineWidth;
+}
+
+void editAppend(char inchar) {
+  static ulong lastTypeMillis = 0;
+  ulong currentMillis = millis();
+
+  // Lower baseline clock speed here?
+
+  // Direct access to DocLine, LineObject, and wordObject
   DocLine& editingDocLine = docLines[editingLine_index];
+  LineObject* lastLine;
+  wordObject* lastWord;
 
-  if (!editingDocLine.lines.empty()) {
-    LineObject& lastLine = editingDocLine.lines.back();
-    // Now we can access lastLine.words or lastLine.index, etc.
-  } else {
-    // No lines yet, so add a blank lastLine
+  // Ensure we have at least one line
+  if (editingDocLine.lines.empty()) {
     LineObject blankLine;
     blankLine.index = indexCounter++;
     editingDocLine.lines.push_back(blankLine);
-    LineObject& lastLine = editingDocLine.lines.back();
+  }
+  lastLine = &editingDocLine.lines.back();
+
+  // Ensure we have at least one word
+  if (lastLine->words.empty()) {
+    lastLine->words.push_back({"", false, false});
+  }
+  lastWord = &lastLine->words.back();
+
+  // HANDLE INPUTS
+  //No char recieved
+  if (inchar == 0) return;
+
+  // Increase clock speed here for faster processing?
+
+  //Return home
+  if (inchar == 12) {
+    HOME_INIT();
+  }
+  //TAB Recieved
+  else if (inchar == 9) {                                  
+  }                                      
+  //SHIFT Recieved
+  else if (inchar == 17) {                                  
+    if (CurrentKBState == SHIFT) CurrentKBState = NORMAL;
+    else CurrentKBState = SHIFT;
+  }
+  //FN Recieved
+  else if (inchar == 18) {                                  
+    if (CurrentKBState == FUNC) CurrentKBState = NORMAL;
+    else CurrentKBState = FUNC;
+  }
+  //Space Recieved
+  else if (inchar == 32) {                                  
+    if (getLineWidth(*lastLine, editingDocLine.style) > display.width()) {
+      // Word does not fit -> wrap to new line
+      // Remove the word from the old line
+      wordObject movedWord = std::move(*lastWord);
+      lastLine->words.pop_back();
+
+      // Create new line, move the word into it
+      LineObject newLine;
+      newLine.words.push_back(std::move(movedWord));
+      editingDocLine.lines.push_back(std::move(newLine));
+
+      // Update lastLine and lastWord
+      lastLine = &editingDocLine.lines.back();
+      lastWord = &lastLine->words.back();
+    }
+
+    // Start a new empty word for the next input
+    wordObject newWord;
+    newWord.text = "";
+    newWord.bold = false;
+    newWord.italic = false;
+    lastLine->words.push_back(std::move(newWord));
+    lastWord = &lastLine->words.back();
+
+    // Update line indexes
+    refreshAllLineIndexes();
+
+    // Mark screen for update
+    updateScreen = true;
+  }
+  // ENTER Received
+  else if (inchar == 13) {
+    // Wrap current word if it doesn't fit
+    if (getLineWidth(*lastLine, editingDocLine.style) > display.width()) {
+      wordObject movedWord = std::move(*lastWord);
+      lastLine->words.pop_back();
+
+      LineObject newLine;
+      newLine.words.push_back(std::move(movedWord));
+      editingDocLine.lines.push_back(std::move(newLine));
+
+      lastLine = &editingDocLine.lines.back();
+      lastWord = &lastLine->words.back();
+    }
+
+    // Finish current DocLine and create a new one
+    DocLine newDocLine;
+    newDocLine.style = 'T';
+    
+    // Add one line and one empty word
+    LineObject newLine;
+    newLine.index = indexCounter++;
+    newLine.words.push_back({"", false, false});
+    newDocLine.lines.push_back(std::move(newLine));
+
+    // Insert new DocLine immediately after the current one
+    editingLine_index++;
+    docLines.insert(docLines.begin() + editingLine_index, std::move(newDocLine));
+
+    // Update lastLine/lastWord to point to new line
+    lastLine = &docLines[editingLine_index].lines.back();
+    lastWord = &lastLine->words.back();
+
+    // Refresh all line indexes
+    refreshAllLineIndexes();
+
+    // Mark screen for update
+    updateScreen = true;
+  }
+  //ESC / CLEAR Recieved
+  else if (inchar == 20) {                                  
+
+  }
+  // LEFT
+  else if (inchar == 19) {                                  
+    
+  }
+  // RIGHT
+  else if (inchar == 21) {                                  
+    
+  }
+  // BKSP Received
+  else if (inchar == 8) {
+    if (lastWord->text.length() > 0) {
+      // Remove the last character of the current word
+      lastWord->text.remove(lastWord->text.length() - 1);
+    } 
+    else {
+      // Current word is empty, move to previous word or line
+      LineObject* linePtr = lastLine;
+      wordObject* wordPtr = lastWord;
+
+      if (linePtr->words.size() > 1) {
+          // Pop the empty word and go to the previous word in the same line
+          linePtr->words.pop_back();
+          wordPtr = &linePtr->words.back();
+      } else {
+          // First word in the line
+          DocLine& docLineRef = docLines[editingLine_index];
+
+          if (docLineRef.lines.size() > 1) {
+              // Move to previous LineObject in the same DocLine
+              docLineRef.lines.pop_back();
+              linePtr = &docLineRef.lines.back();
+              wordPtr = &linePtr->words.back();
+          } else if (editingLine_index > 0) {
+              // Move to previous DocLine
+              editingLine_index--;
+              DocLine& prevDocLine = docLines[editingLine_index];
+              linePtr = &prevDocLine.lines.back();
+              wordPtr = &linePtr->words.back();
+          } else {
+              // At very start of document, nothing to do
+              return;
+          }
+      }
+
+      // Update lastLine / lastWord references
+      lastLine = linePtr;
+      lastWord = wordPtr;
+    }
+
+    // Mark screen for update
+    updateScreen = true;
+  }
+  //SAVE Recieved
+  else if (inchar == 6) {
+
+  }
+  //FILE Recieved
+  else if (inchar == 7) {
+    
+  }
+  // Font Switcher 
+  else if (inchar == 14) {                                  
+    CurrentTXTState_NEW = FONT;
+    CurrentKBState = FUNC;
+    updateScreen = true;
+  }
+  else {
+    currentLine += inchar;
+    if (inchar >= 48 && inchar <= 57) {}  //Only leave FN on if typing numbers
+    else if (CurrentKBState != NORMAL) {
+      CurrentKBState = NORMAL;
+    }
   }
 
+  // Typing is happening
+  lastTypeMillis = millis();
+
+  currentMillis = millis();
+  //Make sure oled only updates at 60fps
+  if (currentMillis - OLEDFPSMillis >= (1000/60)) {
+    OLEDFPSMillis = currentMillis;
+    // Show line on OLED when not actively scrolling
+    if (lastTouch == -1) {
+      //OLED().oledLine(currentLine);
+      bool currentlyTyping = false;
+      if (millis() - lastTypeMillis < TYPE_INTERFACE_TIMEOUT) currentlyTyping = true;
+
+      int lineWidth = getLineWidth(*lastLine, editingDocLine.style);
+
+      oledEditorDisplay(*lastLine, *lastWord, lineWidth, currentlyTyping);
+    }
+    else {
+      // Scrolling display function here
+    }
+  }
 }
 
 // ------------------ Rendering ------------------
@@ -658,18 +895,98 @@ void updateScroll() {
   }
 }
 
-void oledEditorDisplay(String line, uint16_t pixelsUsed) {
+bool lineHasText(const LineObject& lineObj) {
+  // Check if line has any words
+  if (lineObj.words.empty()) return false;
+
+  // Check if any word has non-empty text
+  for (const auto& w : lineObj.words) {
+    if (w.text.length() > 0) return true;
+  }
+
+  return false;
+}
+
+void toolBar(wordObject& wordObj) {
+  // FN/SHIFT indicator centered
+  u8g2.setFont(u8g2_font_5x7_tf);
+
+  switch (CurrentKBState) {
+    case 1:
+    u8g2.drawStr((u8g2.getDisplayWidth() - u8g2.getStrWidth("SHIFT")) / 2, u8g2.getDisplayHeight(), "SHIFT");
+    break;
+    case 2:
+    u8g2.drawStr((u8g2.getDisplayWidth() - u8g2.getStrWidth("FN")) / 2,    u8g2.getDisplayHeight(), "FN");
+    break;
+    default:
+    break;
+  }
+
+  // Show line type or edit type
+  if ((millis() / 2000) % 2 == 0) {  // ON for 1000ms, OFF for 1000ms
+    char currentDocLineType = docLines[editingLine_index].style;
+    if (currentDocLineType == 'T') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "BODY");
+    }
+    else if (currentDocLineType == '1') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "H1");
+    }
+    else if (currentDocLineType == '2') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "H2");
+    }
+    else if (currentDocLineType == '3') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "H3");
+    }
+    else if (currentDocLineType == 'C') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "CODE");
+    }
+    else if (currentDocLineType == '>') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "QUOTE");
+    }
+    else if (currentDocLineType == '-') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "U LIST");
+    }
+    else if (currentDocLineType == 'L') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "O LIST");
+    }
+    else if (currentDocLineType == 'H') {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "H RULE");
+    }
+  }
+  else {
+    if (currentEditMode == edit_append) {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "APPEND");
+    }
+    else if (currentEditMode == edit_inline) {
+      u8g2.drawStr(0, u8g2.getDisplayHeight(), "INLINE");
+    }
+  }
+
+  // Bold and italic indicator
+  if (wordObj.bold == true && wordObj.italic == true) {
+    u8g2.drawStr(u8g2.getDisplayWidth() - u8g2.getStrWidth("BOLD+ITALIC"), u8g2.getDisplayHeight(), "BOLD+ITALIC");
+  }
+  else if (wordObj.bold == true && wordObj.italic == false) {
+    u8g2.drawStr(u8g2.getDisplayWidth() - u8g2.getStrWidth("BOLD"), u8g2.getDisplayHeight(), "BOLD");
+  }
+  else if (wordObj.bold == false && wordObj.italic == true) {
+    u8g2.drawStr(u8g2.getDisplayWidth() - u8g2.getStrWidth("ITALIC"), u8g2.getDisplayHeight(), "ITALIC");
+  }
+}
+
+void oledEditorDisplay(LineObject& lineObj, wordObject& currentWord, int pixelsUsed, bool currentlyTyping) {
   u8g2.clearBuffer();
 
   //PROGRESS BAR
-  if (line.length() > 0) {
+  if (lineHasText(lineObj) == true && pixelsUsed > 0) {
     uint8_t progress = map(pixelsUsed, 0, display.width(), 0, 128);
 
-    u8g2.drawVLine(u8g2.getDisplayWidth(), 0, 2);
-    u8g2.drawVLine(0, 0, 2);
+    u8g2.drawVLine(u8g2.getDisplayWidth(), 0, 3);
+    u8g2.drawVLine(0, 0, 3);
 
     u8g2.drawHLine(0, 0, progress);
     u8g2.drawHLine(0, 1, progress);
+    u8g2.drawHLine(0, 2, progress);
 
     // LINE END WARNING INDICATOR
     if (progress > (u8g2.getDisplayWidth() * 0.8)) {
@@ -679,10 +996,28 @@ void oledEditorDisplay(String line, uint16_t pixelsUsed) {
         u8g2.drawLine(u8g2.getDisplayWidth()-1,15,u8g2.getDisplayWidth()-4,18);
       }
     }
+    // New line on space animation
+    if (pixelsUsed > display.width()) {
+      // Sawtooth animation
+      uint period = 1000;
+      uint x = map(millis() % period, 0, period, 0, 128);
+
+      // Draw negative arrow
+      u8g2.setDrawColor(0);
+      u8g2.drawHLine(x, 1, 5);
+      u8g2.drawTriangle(x+4,0, x+4,2, x+7,1);
+      u8g2.setDrawColor(1);
+    }
   }
 
-  // Show infobar
-  OLED().infoBar();
+  if (currentlyTyping) {
+    // Show toolbar
+    toolBar(currentWord);
+  }
+  else {
+    // Show infobar
+    OLED().infoBar();
+  }
 
   // DRAW LINE TEXT (unchanged)
   u8g2.setFont(u8g2_font_ncenB18_tr);
@@ -695,8 +1030,6 @@ void oledEditorDisplay(String line, uint16_t pixelsUsed) {
 
   u8g2.sendBuffer();
 }
-
-
 
 // INIT
 void TXT_INIT() {
@@ -723,7 +1056,6 @@ void einkHandler_TXT_NEW() {
     EINK().refresh();
   }
 }
-
 
 void processKB_TXT_NEW() {
   int currentMillis = millis();
@@ -752,7 +1084,7 @@ void processKB_TXT_NEW() {
   }
 }
 
-/*
+
 void processKB_TXT_NEW() {
   if (OLEDPowerSave) {
     u8g2.setPowerSave(0);
@@ -766,158 +1098,18 @@ void processKB_TXT_NEW() {
     char inchar = updateKeypress();
     switch (CurrentTXTState_NEW) {
       case TXT_:
-        // SET MAXIMUMS AND FONT
-        EINK().setTXTFont(EINK().getCurrentFont());
+        // update scroll
+        updateScroll();
 
-        // UPDATE SCROLLBAR
-        updateScrollFromTouch();
+        switch (currentEditMode) {
+          case edit_append:
+            editAppend(inchar);
+            break;
+          case edit_inline:
 
-        // HANDLE INPUTS
-        //No char recieved
-        if (inchar == 0);  
-        else if (inchar == 12) {
-          CurrentAppState = HOME;
-          currentLine     = "";
-          newState        = true;
-          CurrentKBState  = NORMAL;
+            break;
         }
-        //TAB Recieved
-        else if (inchar == 9) {                                  
-          currentLine += "    ";
-        }                                      
-        //SHIFT Recieved
-        else if (inchar == 17) {                                  
-          if (CurrentKBState == SHIFT) CurrentKBState = NORMAL;
-          else CurrentKBState = SHIFT;
-        }
-        //FN Recieved
-        else if (inchar == 18) {                                  
-          if (CurrentKBState == FUNC) CurrentKBState = NORMAL;
-          else CurrentKBState = FUNC;
-        }
-        //Space Recieved
-        else if (inchar == 32) {                                  
-          currentLine += " ";
-        }
-        //CR Recieved
-        else if (inchar == 13) {                          
-          allLines.push_back(currentLine);
-          currentLine = "";
-          newLineAdded = true;
-        }
-        //ESC / CLEAR Recieved
-        else if (inchar == 20) {                                  
-          allLines.clear();
-          currentLine = "";
-          OLED().oledWord("Clearing...");
-          doFull = true;
-          newLineAdded = true;
-          delay(300);
-        }
-        // LEFT
-        else if (inchar == 19) {                                  
-          
-        }
-        // RIGHT
-        else if (inchar == 21) {                                  
-          
-        }
-        //BKSP Recieved
-        else if (inchar == 8) {                  
-          if (currentLine.length() > 0) {
-            currentLine.remove(currentLine.length() - 1);
-          }
-        }
-        //SAVE Recieved
-        else if (inchar == 6) {
-          //File exists, save normally
-          if (editingFile != "" && editingFile != "-") {
-            saveFile();
-            CurrentKBState = NORMAL;
-            newLineAdded = true;
-          }
-          //File does not exist, make a new one
-          else {
-            CurrentTXTState = WIZ3;
-            currentLine = "";
-            CurrentKBState = NORMAL;
-            doFull = true;
-            newState = true;
-          }
-        }
-        //LOAD Recieved
-        else if (inchar == 5) {
-          loadFile();
-          CurrentKBState = NORMAL;
-          newLineAdded = true;
-        }
-        //FILE Recieved
-        else if (inchar == 7) {
-          CurrentTXTState = WIZ0;
-          CurrentKBState = NORMAL;
-          newState = true;
-        }
-        // Font Switcher 
-        else if (inchar == 14) {                                  
-          CurrentTXTState = FONT;
-          CurrentKBState = FUNC;
-          newState = true;
-        }
-        else {
-          currentLine += inchar;
-          if (inchar >= 48 && inchar <= 57) {}  //Only leave FN on if typing numbers
-          else if (CurrentKBState != NORMAL) {
-            CurrentKBState = NORMAL;
-          }
-        }
-
-        currentMillis = millis();
-        //Make sure oled only updates at 60fps
-        if (currentMillis - OLEDFPSMillis >= (1000/60)) {
-          OLEDFPSMillis = currentMillis;
-          // ONLY SHOW OLEDLINE WHEN NOT IN SCROLL MODE
-          if (lastTouch == -1) {
-            OLED().oledLine(currentLine);
-            if (prev_dynamicScroll != dynamicScroll) prev_dynamicScroll = dynamicScroll;
-          }
-          else OLED().oledScroll();
-        }
-
-        if (currentLine.length() > 0) {
-          int16_t x1, y1;
-          uint16_t charWidth, charHeight;
-          display.getTextBounds(currentLine, 0, 0, &x1, &y1, &charWidth, &charHeight);
-
-          if (charWidth >= display.width()-5) {
-            // If currentLine ends with a space, just start a new line
-            if (currentLine.endsWith(" ")) {
-              allLines.push_back(currentLine);
-              currentLine = "";
-            }
-            // If currentLine ends with a letter, we are in the middle of a word
-            else {
-              int lastSpace = currentLine.lastIndexOf(' ');
-              String partialWord;
-
-              if (lastSpace != -1) {
-                partialWord = currentLine.substring(lastSpace + 1);
-                currentLine = currentLine.substring(0, lastSpace);  // Strip partial word
-                allLines.push_back(currentLine);
-                currentLine = partialWord;  // Start new line with the partial word
-              } 
-              // No spaces found, whole line is a single word
-              else {
-                allLines.push_back(currentLine);
-                currentLine = "";
-              }
-            }
-            newLineAdded = true;
-          }
-        }
-
         break;
     }
   }
 }
-
-*/

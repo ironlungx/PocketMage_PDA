@@ -50,7 +50,7 @@ void USBAppShutdown() {
       OLED().oledWord("Insert SD Card and Reboot!");
       delay(5000);
       u8g2.setPowerSave(1);
-      playJingle("shutdown");
+      BZ().playJingle(Jingle::Shutdown);
       esp_deep_sleep_start();
       return;
     }
@@ -192,7 +192,7 @@ void processKB_USB() {
   }
   
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-    char inchar = updateKeypress();
+    char inchar = KB().updateKeypress();
     // HANDLE INPUTS
     //No char recieved
     if (inchar == 0);   
@@ -219,6 +219,6 @@ void einkHandler_USB() {
     // Display Background
     display.drawBitmap(0, 0, _usb, 320, 218, GxEPD_BLACK);
 
-    EINK().multiPassRefesh(2);
+    EINK().multiPassRefresh(2);
   }
 }

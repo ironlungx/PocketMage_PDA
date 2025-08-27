@@ -11,15 +11,6 @@
 //   .8'     `888.   888          888         oo     .d8P  //
 //  o88o     o8888o o888o        o888o        8""88888P'   //
 
-void einkHandler(void* parameter) {
-  vTaskDelay(pdMS_TO_TICKS(250)); 
-  for (;;) {
-    applicationEinkHandler();
-
-    vTaskDelay(pdMS_TO_TICKS(50));
-    yield();
-  }
-}
 
 // ADD E-INK HANDLER APP SCRIPTS HERE
 void applicationEinkHandler() {
@@ -57,7 +48,16 @@ void applicationEinkHandler() {
       break;
   }
 }
+// migrated from einkFunc.cpp
+void einkHandler(void* parameter) {
+  vTaskDelay(pdMS_TO_TICKS(250)); 
+  for (;;) {
+    applicationEinkHandler();
 
+    vTaskDelay(pdMS_TO_TICKS(50));
+    yield();
+  }
+}
 // ADD PROCESS/KEYBOARD APP SCRIPTS HERE
 void processKB() {
   switch (CurrentAppState) {
@@ -109,103 +109,28 @@ void setup() {
   Serial.begin(115200);
   Wire.begin(I2C_SDA, I2C_SCL);
   SPI.begin(SPI_SCK, -1, SPI_MOSI, -1);
-
+  // setupSys() to begin here
   // OLED SETUP
-
-  u8g2.begin();
-  u8g2.setBusClock(10000000);
-  u8g2.setPowerSave(0);
-  u8g2.clearBuffer();
-  u8g2.sendBuffer();
-  wireOled();
-
-  // SHOW "PocketMage" while DEVICE BOOTS
-  OLED().oledWord("   PocketMage   ", true, false);
+  setupOled();
 
   // STARTUP JINGLE
-  playJingle("startup");
-
+  setupBZ();
+  
   // WAKE INTERRUPT SETUP
   pinMode(KB_IRQ, INPUT);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_8, 0);
 
   // KEYBOARD SETUP
-  if (!keypad.begin(TCA8418_DEFAULT_ADDR, &Wire)) {
-    Serial.println("Error Initializing the Keyboard");
-    OLED().oledWord("Keyboard INIT Failed");
-    delay(1000);
-    while (1);
-  }
-  keypad.matrix(4, 10);
-  attachInterrupt(digitalPinToInterrupt(KB_IRQ), TCA8418_irq, CHANGE);
-  keypad.flush();
-  keypad.enableInterrupts();
-
-  // SD CARD SETUP
-  SD_MMC.setPins(SD_CLK, SD_CMD, SD_D0);
-  if (!SD_MMC.begin("/sdcard", true) || SD_MMC.cardType() == CARD_NONE) {
-    Serial.println("MOUNT FAILED");
-    OLED().oledWord("SD Card Not Detected!");
-    delay(2000);
-    if (ALLOW_NO_MICROSD) {
-      OLED().oledWord("All Work Will Be Lost!");
-      delay(5000);
-      noSD = true;
-    }
-    else {
-      OLED().oledWord("Insert SD Card and Reboot!");
-      delay(5000);
-      // Put OLED to sleep
-      u8g2.setPowerSave(1);
-      // Shut Down Jingle
-      playJingle("shutdown");
-      // Sleep
-      esp_deep_sleep_start();
-      return;
-    }
-  }
-
-  setCpuFrequencyMhz(240);
-  // Create folders and files if needed
-  if (!SD_MMC.exists("/sys"))     SD_MMC.mkdir("/sys");
-  if (!SD_MMC.exists("/journal")) SD_MMC.mkdir("/journal");
-  if (!SD_MMC.exists("/dict")) SD_MMC.mkdir("/dict");
-  if (!SD_MMC.exists("/sys/events.txt")) {
-    File f = SD_MMC.open("/sys/events.txt", FILE_WRITE);
-    if (f) f.close();
-  }
-  if (!SD_MMC.exists("/sys/events.txt")) {
-    File f = SD_MMC.open("/sys/events.txt", FILE_WRITE);
-    if (f) f.close();
-  }
-  if (!SD_MMC.exists("/sys/tasks.txt")) {
-    File f = SD_MMC.open("/sys/tasks.txt", FILE_WRITE);
-    if (f) f.close();
-  }
-  if (!SD_MMC.exists("/sys/SDMMC_META.txt")) {
-    File f = SD_MMC.open("/sys/SDMMC_META.txt", FILE_WRITE);
-    if (f) f.close();
-  }
- 
-  loadState();
+  setupKB();
 
   // EINK HANDLER SETUP
-  wireEink();
-  display.init(115200);
-  display.setRotation(3);
-  display.setTextColor(GxEPD_BLACK);
-  display.setFullWindow();
+  setupEink();
+  
+  // SD CARD SETUP
+  setupSD();
 
-  xTaskCreatePinnedToCore(
-    einkHandler,             // Function name (your user-defined function)
-    "einkHandlerTask",       // Task name
-    10000,                   // Stack size (in bytes)
-    NULL,                    // Parameters (none in this case)
-    1,                       // Priority (1 is low priority)
-    &einkHandlerTaskHandle,  // Task handle
-    0                        // Core ID (0 for core 0, 1 for core 1)
-  );
 
+  
   // POWER SETUP
   pinMode(PWR_BTN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PWR_BTN), PWR_BTN_irq, FALLING);
@@ -217,7 +142,7 @@ void setup() {
   // SET CPU CLOCK FOR POWER SAVE MODE
   if (SAVE_POWER) setCpuFrequencyMhz(40 );
   else            setCpuFrequencyMhz(240);
-
+  // setupCAP() to begin here
   // MPR121 / SLIDER
   if (!cap.begin(MPR121_ADDR)) {
     Serial.println("TouchPad Failed");
@@ -226,6 +151,7 @@ void setup() {
   }
   cap.setAutoconfig(true);
 
+  // setupRTC() to begin here
   // RTC SETUP
   pinMode(RTC_INT, INPUT);
   if (!rtc.begin()) {
@@ -239,6 +165,7 @@ void setup() {
 
   // Set "random" seed
   randomSeed(analogRead(BAT_SENS));
+  // end setupSys()
 }
 
 void loop() {

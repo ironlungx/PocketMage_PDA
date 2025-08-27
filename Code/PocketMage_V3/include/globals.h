@@ -3,20 +3,16 @@
 
 
 // LIBRARIES
-#pragma once
 #include <Arduino.h>
 #include <GxEPD2_BW.h>
 #include <U8g2lib.h>
-#include <Wire.h>
 #include <Adafruit_TCA8418.h>
 #include <vector>
-#include <algorithm>
 #include <Buzzer.h>
 #include <USB.h>
 #include <USBMSC.h>
 #include <SD_MMC.h>
 #include <Preferences.h>
-#include <stdint.h>
 #include <Adafruit_MPR121.h>
 #include <esp_cpu.h>
 #include <RTClib.h>
@@ -24,6 +20,7 @@
 #include <freertos/task.h>
 #include <assets.h>
 #include <config.h>
+
 
 /* // migrated to pocketmage_eink.h
 // FONTS
@@ -68,6 +65,10 @@ extern char keysArrayFN[4][10];     // Function key layout
 
 // Touch slider (capacitive)
 extern Adafruit_MPR121 cap; // Touch slider
+extern volatile long int dynamicScroll;      // Dynamic scroll offset
+extern volatile long int prev_dynamicScroll; // Previous scroll offset
+extern int lastTouch;                        // Last touch event
+extern unsigned long lastTouchTime;          // Last touch time
 
 // ===================== AUDIO =====================
 // Buzzer for sound feedback
@@ -120,7 +121,7 @@ extern uint8_t prevSec;              // Previous seconds
 extern TaskHandle_t einkHandlerTaskHandle; // E-Ink handler task
 
 // ===================== KEYBOARD STATE =====================
-extern char currentKB[4][10];        // Current keyboard layout
+// extern char currentKB[4][10];        // Current keyboard layout
 extern volatile bool SDCARD_INSERT;  // SD card inserted event
 extern bool noSD;                    // No SD card present
 extern volatile bool SDActive;       // SD card active
@@ -150,10 +151,6 @@ extern AppState CurrentAppState;         // Current app state
 // ===================== TXT APP =====================
 extern volatile bool newLineAdded;           // New line added in TXT
 extern std::vector<String> allLines;         // All lines in TXT
-extern volatile long int dynamicScroll;      // Dynamic scroll offset
-extern volatile long int prev_dynamicScroll; // Previous scroll offset
-extern int lastTouch;                        // Last touch event
-extern unsigned long lastTouchTime;          // Last touch time
 
 // ===================== TASKS APP =====================
 extern std::vector<std::vector<String>> tasks; // Task list
@@ -165,10 +162,11 @@ extern HOMEState CurrentHOMEState;            // Current home state
 // ===================== FUNCTION PROTOTYPES =====================
 // <sysFunc.cpp>
 // SYSTEM
+// migrate to pocketmage_sys (planned)
 void checkTimeout();
 void PWR_BTN_irq();
-void TCA8418_irq();
-char updateKeypress();
+//void TCA8418_irq(); // migrated to pocketmage_keypad.h
+//char updateKeypress(); // migrated to pocketmage_keypad.h
 void printDebug();
 String vectorToString();
 void stringToVector(String inputText);
@@ -184,12 +182,14 @@ void updateBattState();
 String removeChar(String str, char character);
 void appendToFile(String path, String inText);
 void setCpuSpeed(int newFreq);
-void playJingle(String jingle);
+//void playJingle(String jingle); // migrated to pocketmage_bz.h
 void deepSleep(bool alternateScreenSaver = false);
 void loadState(bool changeState = true);
 int stringToInt(String str);
 void updateScrollFromTouch();
+void setTimeFromString(String timeStr);
 
+/* //migrated to pocketmage_sd.h
 // microSD
 void listDir(fs::FS &fs, const char *dirname);
 void readFile(fs::FS &fs, const char *path);
@@ -198,7 +198,7 @@ void writeFile(fs::FS &fs, const char *path, const char *message);
 void appendFile(fs::FS &fs, const char *path, const char *message);
 void renameFile(fs::FS &fs, const char *path1, const char *path2);
 void deleteFile(fs::FS &fs, const char *path);
-void setTimeFromString(String timeStr);
+*/
 
 /* //migrated to pocketmage_oled.h
 // <OLEDFunc.cpp> 
@@ -218,7 +218,7 @@ void einkTextDynamic(bool doFull_, bool noRefresh = false);
 void setTXTFont(const GFXfont *font);
 void setFastFullRefresh(bool setting);
 void drawStatusBar(String input);
-void multiPassRefesh(int passes);
+void multiPassRefresh(int passes);
 */
 
 // <FILEWIZ.cpp>

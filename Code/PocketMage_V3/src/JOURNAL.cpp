@@ -263,7 +263,7 @@ void processKB_JOURNAL() {
   switch (CurrentJournalState) {
     case J_MENU:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        inchar = updateKeypress();
+        inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);   
@@ -323,7 +323,7 @@ void processKB_JOURNAL() {
 
     case J_TXT:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-      inchar = updateKeypress();
+      inchar = KB().updateKeypress();
       // SET MAXIMUMS AND FONT
       EINK().setTXTFont(EINK().getCurrentFont());
 
@@ -460,7 +460,7 @@ void einkHandler_JOURNAL() {
 
         drawJMENU();
 
-        EINK().multiPassRefesh(2);
+        EINK().multiPassRefresh(2);
       }
       break;
     case J_TXT:

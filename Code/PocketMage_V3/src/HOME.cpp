@@ -25,7 +25,7 @@ void commandSelect(String command) {
     command = removeChar(command, ' ');
     command = removeChar(command, '-');
     keypad.disableInterrupts();
-    listDir(SD_MMC, "/");
+    SD().listDir(SD_MMC, "/");
     keypad.enableInterrupts();
 
     for (uint8_t i = 0; i < (sizeof(filesList) / sizeof(filesList[0])); i++) {
@@ -44,7 +44,7 @@ void commandSelect(String command) {
     command = removeChar(command, ' ');
     command = removeChar(command, '/');
     keypad.disableInterrupts();
-    listDir(SD_MMC, "/");
+    SD().listDir(SD_MMC, "/");
     keypad.enableInterrupts();
 
     for (uint8_t i = 0; i < (sizeof(filesList) / sizeof(filesList[0])); i++) {
@@ -202,7 +202,7 @@ void processKB_HOME() {
   switch (CurrentHOMEState) {
     case HOME_HOME:
       if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-        char inchar = updateKeypress();
+        char inchar = KB().updateKeypress();
         // HANDLE INPUTS
         //No char recieved
         if (inchar == 0);   
@@ -277,7 +277,7 @@ void einkHandler_HOME() {
         newState = false;
         drawHome();
         EINK().refresh();
-        //EINK().multiPassRefesh(2);
+        //EINK().multiPassRefresh(2);
       }
       break;
 

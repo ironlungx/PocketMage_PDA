@@ -35,7 +35,7 @@ void processKB_TXT_OLD() {
 
   unsigned long currentMillis = millis();
   if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-    char inchar = updateKeypress();
+    char inchar = KB().updateKeypress();
     switch (CurrentTXTState) {
       case TXT_:
         // SET MAXIMUMS AND FONT
@@ -499,6 +499,8 @@ void einkHandler_TXT_OLD() {
     switch (CurrentTXTState) {
       case TXT_:
         if (newState && doFull) {
+          display.setRotation(3);
+          display.setFullWindow();
           display.fillScreen(GxEPD_WHITE);
           EINK().refresh();
         }
@@ -522,7 +524,7 @@ void einkHandler_TXT_OLD() {
         display.drawBitmap(60,0,fileWizLiteallArray[0],200,218, GxEPD_BLACK);
 
         keypad.disableInterrupts();
-        listDir(SD_MMC, "/");
+        SD().listDir(SD_MMC, "/");
         keypad.enableInterrupts();
 
         for (int i = 0; i < MAX_FILES; i++) {
@@ -590,7 +592,7 @@ void einkHandler_TXT_OLD() {
         display.drawBitmap(60,0,fontfont0,200,218, GxEPD_BLACK);
 
         keypad.disableInterrupts();
-        listDir(SD_MMC, "/");
+        SD().listDir(SD_MMC, "/");
         keypad.enableInterrupts();
 
         for (int i = 0; i < 7; i++) {

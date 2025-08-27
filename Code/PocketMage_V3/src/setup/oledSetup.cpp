@@ -10,32 +10,49 @@
 #include <GxEPD2_BW.h>
 #include <RTClib.h>
 
-constexpr int kBattIconCount = sizeof(batt_allArray) / sizeof(batt_allArray[0]);
 
 // Initialization of oled display class
 static PocketmageOled oled(u8g2);
 
-// e-ink text width wrapper work with Eink display
+
+constexpr int kBattIconCount = sizeof(batt_allArray) / sizeof(batt_allArray[0]);
+
+
+// e-ink text width wrapper to work with Eink display
 static uint16_t einkMeasureWidth(const String& s) {
   int16_t x1, y1; uint16_t w, h;
   display.getTextBounds(s, 0, 0, &x1, &y1, &w, &h);
   return w;
 }
 
-// wire up oled class to globals
+// Setup for Oled Class
+void setupOled() {
+  u8g2.begin();
+  u8g2.setBusClock(10000000);
+  u8g2.setPowerSave(0);
+  u8g2.clearBuffer();
+  u8g2.sendBuffer();
+  wireOled();
+
+  // SHOW "PocketMage" while DEVICE BOOTS
+  OLED().oledWord("   PocketMage   ", true, false);
+}
+
+// Wire function  for Oled class
+// add any global references here + add set function to class header file
 void wireOled() {
-  oled
-    .setAllLines(&allLines)
-    .setDynamicScroll(&dynamicScroll)
-    .setBattery(&battState, batt_allArray, kBattIconCount)
-    .setKeyboardStateGetter([] { return static_cast<int>(CurrentKBState); })
-    .setMSC(&mscEnabled)
-    .setSD(&SDActive)
-    .setScrollBitmap(scrolloled0)
-    .setReferenceWidth(display.width())
-    .setMeasureTextWidth(einkMeasureWidth)
-    .setMaxCharsPerLineEinkGetter([]{ return EINK().maxCharsPerLine(); })
-    .setClock(&rtc, &SYSTEM_CLOCK, &SHOW_YEAR, daysOfTheWeek);
+  oled.setAllLines(&allLines);
+  oled.setDynamicScroll(&dynamicScroll);
+  oled.setBattery(&battState, batt_allArray, kBattIconCount);
+  // lamda to avoid redundant functions To Do: make class interface for each pocketmage component in library
+  oled.setKeyboardStateGetter([]{ return static_cast<int>(CurrentKBState); });
+  oled.setMSC(&mscEnabled);
+  oled.setSD(&SDActive);
+  oled.setScrollBitmap(scrolloled0);
+  oled.setReferenceWidth(display.width());
+  oled.setMeasureTextWidth(einkMeasureWidth);
+  oled.setMaxCharsPerLineEinkGetter([]{ return EINK().maxCharsPerLine(); });
+  oled.setClock(&rtc, &SYSTEM_CLOCK, &SHOW_YEAR, daysOfTheWeek);
 }
 
 // oled object reference for other apps

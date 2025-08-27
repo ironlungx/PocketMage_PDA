@@ -1171,7 +1171,7 @@ void processKB_TXT_NEW_TEST() {
     updateScroll();
     //currentLine = String(lineScroll) + "/" + String(getTotalDisplayLines());
 
-    char inchar = updateKeypress();
+    char inchar = KB().updateKeypress();
     // HANDLE INPUTS
     //No char recieved
     if (inchar == 0);   

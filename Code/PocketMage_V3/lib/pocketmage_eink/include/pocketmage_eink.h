@@ -5,11 +5,13 @@
 //   888    "             888   8     `88b.8   888`88b.     //
 //   888       o          888   8       `888   888  `88b.   //
 //  o888ooooood8         o888o o8o        `8  o888o  o888o  //
+
 #pragma once
 #include <Arduino.h>
 #include <GxEPD2_BW.h>
 #include <vector>
-
+#include <config.h> // for FULL_REFRESH_AFTER
+#pragma region fonts
 // FONTS
 // 3x7
 #include "Fonts/Font3x7FixedNum.h"
@@ -25,25 +27,31 @@
 #include <Fonts/FreeMono12pt7b.h>
 #include <Fonts/FreeSans12pt7b.h>
 #include <Fonts/FreeSerif12pt7b.h>
+#pragma endregion
 
-// Panel type alias
+// Type alias for readability
 using PanelT   = GxEPD2_310_GDEQ031T10;
 using DisplayT = GxEPD2_BW<PanelT, PanelT::HEIGHT>;
 
+// ===================== EINK CLASS =====================
 class PocketmageEink {
 public:
   explicit PocketmageEink(DisplayT& display);
 
   // Wire up external buffers/state used to read from globals
-  void setTextBuffer(std::vector<String>* lines);                 // reference to allLines
-  void setEditingFilePtr(String* editingFile);                    // reference to editingFile string
-  void setDynamicScroll(volatile long* dynamicScrollPtr);      // reference to dynamicScroll
-  void setLineSpacing(uint8_t px);                                // reference to lineSpacing (default 6)
-  void setFullRefreshAfter(uint8_t n);                            // reference to FULL_REFRESH_AFTER (default 5)
-  void setCurrentFont(const GFXfont* font);                     // reference to currentFont
-
+  void setTextBuffer(std::vector<String>* lines)                            { lines_ = lines; };               // reference to allLines
+  void setEditingFilePtr(String* editingFile)                   { editingFile_ = editingFile; };               // reference to editingFile string
+  void setDynamicScroll(volatile long* dynamicScroll)       { dynamicScroll_ = dynamicScroll; };     // reference to dynamicScroll
+  void setLineSpacing(uint8_t lineSpacing)                      { lineSpacing_ = lineSpacing; };                                 // reference to lineSpacing (default 6)
+  void setFullRefreshAfter(uint8_t fullRefreshAfter)  { fullRefreshAfter_ = fullRefreshAfter; };                              // reference to FULL_REFRESH_AFTER (default 5)
+  void setCurrentFont(const GFXfont* font){
+  if (currentFont_ == font) return; 
+    currentFont_ = font;
+  };                       // reference to currentFont
+  
+  // Main display functions
   void refresh();
-  void multiPassRefesh(int passes);
+  void multiPassRefresh(int passes);
   void setFastFullRefresh(bool setting);
   void statusBar(const String& input, bool fullWindow=false);
   void drawStatusBar(const String& input);
@@ -59,22 +67,27 @@ public:
   
   void forceSlowFullUpdate(bool force);
 
-  uint8_t fullRefreshAfter_ = 5; // FULL_REFRESH_AFTER = 5
+
 
 private:
-  DisplayT& display_;
-  std::vector<String>* lines_ = nullptr;
-  String* editingFile_ = nullptr;
-  const GFXfont* currentFont_ = nullptr;
-  volatile long* dynamicScroll_ = nullptr;
+  DisplayT&             display_; // class reference to hardware display object
+  bool                  forceSlowFullUpdate_ = false;
+  uint8_t               partialCounter_      = 0;
+  const GFXfont*        currentFont_         = nullptr;
+  uint8_t               fullRefreshAfter_    = FULL_REFRESH_AFTER;
 
-  // formerly globals
-  uint8_t lineSpacing_ = 6;
-  uint8_t partialCounter_ = 0;
-  bool    forceSlowFullUpdate_ = false;
+  std::vector<String>*  lines_               = nullptr;
+  String*               editingFile_         = nullptr;
 
-  // derived metrics
-  uint8_t maxCharsPerLine_ = 0;
-  uint8_t maxLines_        = 0;
-  uint8_t fontHeight_      = 0;
+  volatile long*        dynamicScroll_       = nullptr;
+
+  // font metrics
+  uint8_t               lineSpacing_         = 6;
+  uint8_t               maxCharsPerLine_     = 0;
+  uint8_t               maxLines_            = 0;
+  uint8_t               fontHeight_          = 0;
 };
+
+void wireEink();
+void setupEink();
+PocketmageEink& EINK();

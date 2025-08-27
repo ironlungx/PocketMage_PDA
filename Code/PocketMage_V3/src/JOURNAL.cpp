@@ -173,6 +173,9 @@ void JMENUCommand(String command) {
     dynamicScroll = 0;
     newLineAdded = true;
     CurrentJournalState = J_TXT;
+
+    if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
+    SDActive = false;
     return;
   }
 
@@ -194,6 +197,9 @@ void JMENUCommand(String command) {
     dynamicScroll = 0;
     newLineAdded = true;
     CurrentJournalState = J_TXT;
+
+    if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
+    SDActive = false;
     return;
   }
 
@@ -205,12 +211,18 @@ void JMENUCommand(String command) {
       String dayStr = command.substring(spaceIndex + 1);
       int day = dayStr.toInt();
 
-      if (day < 1 || day > 31) return;  // invalid day
-
+      if (day < 1 || day > 31) {
+        if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
+        SDActive = false;
+        return;  // invalid day
+      }
       String monthMap = "janfebmaraprmayjunjulaugsepoctnovdec";
       int monthIndex = monthMap.indexOf(monthStr);
-      if (monthIndex == -1) return;  // invalid month
-
+      if (monthIndex == -1) {
+        if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
+        SDActive = false;
+        return;  // invalid month
+      }
       int month = (monthIndex / 3) + 1;
 
       String year = String(rtc.now().year());
@@ -232,6 +244,9 @@ void JMENUCommand(String command) {
       dynamicScroll = 0;
       newLineAdded = true;
       CurrentJournalState = J_TXT;
+
+      if (SAVE_POWER) setCpuFrequencyMhz(POWER_SAVE_FREQ);
+      SDActive = false;
       return;
     }
   }

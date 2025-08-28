@@ -544,7 +544,7 @@ void oledEditorDisplay(LineObject& lineObj, wordObject& currentWord, int pixelsU
 
   //PROGRESS BAR
   if (lineHasText(lineObj) == true && pixelsUsed > 0) {
-    uint8_t progress = map(pixelsUsed, 0, display.width() - DISPLAY_WIDTH_BUFFER, 0, 128);
+    uint8_t progress = map(pixelsUsed, 0, display.width() - DISPLAY_WIDTH_BUFFER, 0, display.width());
 
     u8g2.drawVLine(u8g2.getDisplayWidth(), 0, 3);
     u8g2.drawVLine(0, 0, 3);
@@ -564,13 +564,14 @@ void oledEditorDisplay(LineObject& lineObj, wordObject& currentWord, int pixelsU
     // New line on space animation
     if (pixelsUsed > display.width() - DISPLAY_WIDTH_BUFFER) {
       // Sawtooth animation
-      uint period = 1000;
-      uint x = map(millis() % period, 0, period, 0, 128);
+      uint period = 4000;
+      uint x = map(millis() % period, 0, period, 0, display.width());
 
       // Draw negative arrow
       u8g2.setDrawColor(0);
       u8g2.drawHLine(x, 1, 5);
-      u8g2.drawTriangle(x+4,0, x+4,2, x+7,1);
+      u8g2.drawVLine(x+4, 0, 3);
+      u8g2.drawPixel(x+5,1);
       u8g2.setDrawColor(1);
     }
   }
@@ -792,14 +793,16 @@ void editAppend(char inchar) {
   }
   lastWord = &lastLine->words.back();
 
+  if (inchar != 0) {
+    // Increase clock speed here for faster processing?
+    setCpuFrequencyMhz(240);
+  }
+
   // HANDLE INPUTS
   //No char recieved
-  if (inchar == 0) return;
-
-  // Increase clock speed here for faster processing?
-
+  if (inchar == 0) {}
   //Return home
-  if (inchar == 12) {
+  else if (inchar == 12) {
     HOME_INIT();
   }
   //TAB Recieved
@@ -900,7 +903,22 @@ void editAppend(char inchar) {
   }
   // SHFT + LEFT (Text type select)
   else if (inchar == 28) {                                  
-    
+      // Define the cycle order
+      static const char styleCycle[] = { 'T', '1', '2', '3', '>', 'L', '-', 'C', 'H' };
+      static const int numStyles = sizeof(styleCycle) / sizeof(styleCycle[0]);
+
+      // Find current style index
+      int currentIndex = 0;
+      for (int i = 0; i < numStyles; i++) {
+        if (editingDocLine.style == styleCycle[i]) {
+          currentIndex = i;
+          break;
+        }
+      }
+
+      // Move to next style in cycle
+      currentIndex = (currentIndex + 1) % numStyles;
+      editingDocLine.style = styleCycle[currentIndex];
   }
   // SHFT + RIGHT (Word type select)
   else if (inchar == 30) {                                  
@@ -990,8 +1008,10 @@ void editAppend(char inchar) {
     }
   }
 
-  // Typing is happening
-  lastTypeMillis = millis();
+  if (inchar != 0) {
+    // Typing is happening
+    lastTypeMillis = millis();
+  }
 
   currentMillis = millis();
   //Make sure oled only updates at 60fps
@@ -999,9 +1019,7 @@ void editAppend(char inchar) {
     OLEDFPSMillis = currentMillis;
     // Show line on OLED when not actively scrolling
     if (lastTouch == -1) {
-      //OLED().oledLine(currentLine);
-      bool currentlyTyping = false;
-      if (millis() - lastTypeMillis < TYPE_INTERFACE_TIMEOUT) currentlyTyping = true;
+      bool currentlyTyping = (millis() - lastTypeMillis < TYPE_INTERFACE_TIMEOUT);
 
       int lineWidth = getLineWidth(*lastLine, editingDocLine.style);
 
@@ -1011,6 +1029,8 @@ void editAppend(char inchar) {
       // Scrolling display function here
     }
   }
+
+  if (SAVE_POWER) setCpuFrequencyMhz(80);
 }
 
 // INIT
@@ -1122,25 +1142,15 @@ void initFonts() {
   fonts[sans].list_B   = &FreeSansBold9pt7b;
   fonts[sans].list_I   = &FreeSansOblique9pt7b;
   fonts[sans].list_BI  = &FreeSansBoldOblique9pt7b;
-
-  // Initialize font width
-  display.setFont(fonts[fontStyle].normal);
-  int16_t x1, y1;
-  uint16_t wpx, hpx;
-  display.getTextBounds("INITIALIZE", 0, 0, &x1, &y1, &wpx, &hpx);
-
-  display.setFullWindow();
-  display.fillScreen(GxEPD_WHITE);
-  displayDocument();
-  display.fillScreen(GxEPD_WHITE);
 }
 
 void TXT_INIT() {
+  initFonts();
+
   loadMarkdownFile("/markdownTest.txt");
   OLED().oledWord("FILE LOADED");
   delay(500);
 
-  initFonts();
   setFontStyle(serif);
 
   CurrentAppState = TXT;
@@ -1155,36 +1165,9 @@ void einkHandler_TXT_NEW() {
     display.fillScreen(GxEPD_WHITE);
     displayDocument();
     EINK().refresh();
+    refreshAllLineIndexes();
   }
 }
-
-void processKB_TXT_NEW_TEST() {
-  int currentMillis = millis();
-  //Make sure oled only updates at 10FPS
-  if (currentMillis - OLEDFPSMillis >= (1000/10 /*OLED_MAX_FPS*/)) {
-    OLEDFPSMillis = currentMillis;
-    //OLED().oledLine(currentLine, false);
-  }
-  
-  if (currentMillis - KBBounceMillis >= KB_COOLDOWN) {  
-    // update scroll
-    updateScroll();
-    //currentLine = String(lineScroll) + "/" + String(getTotalDisplayLines());
-
-    char inchar = KB().updateKeypress();
-    // HANDLE INPUTS
-    //No char recieved
-    if (inchar == 0);   
-    // Home recieved
-    else if (inchar == 12 || inchar == 8) {
-      CurrentAppState = HOME;
-      //currentLine     = "";
-      newState        = true;
-      CurrentKBState  = NORMAL;
-    }
-  }
-}
-
 
 void processKB_TXT_NEW() {
   if (OLEDPowerSave) {

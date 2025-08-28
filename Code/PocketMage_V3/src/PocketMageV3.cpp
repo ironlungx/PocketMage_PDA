@@ -111,7 +111,7 @@ void setup() {
   oledWord("   PocketMage   ", true, false);
 
   // STARTUP JINGLE
-  playJingle("startup");
+  playJingle(Jingle::STARTUP);
 
   // WAKE INTERRUPT SETUP
   pinMode(KB_IRQ, INPUT);
@@ -146,7 +146,7 @@ void setup() {
       // Put OLED to sleep
       u8g2.setPowerSave(1);
       // Shut Down Jingle
-      playJingle("shutdown");
+      playJingle(Jingle::SHUTDOWN);
       // Sleep
       esp_deep_sleep_start();
       return;

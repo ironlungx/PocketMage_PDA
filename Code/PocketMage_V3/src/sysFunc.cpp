@@ -591,8 +591,8 @@ int stringToInt(String str) {
 }
 
 // Misc Outputs
-void playJingle(String jingle) {
-  if (jingle == "startup") {
+void playJingle(Jingle jingle) {
+  if (jingle == Jingle::STARTUP) {
     buzzer.begin(0);
     buzzer.sound(NOTE_A8, 120);
     buzzer.sound(NOTE_B8, 120);
@@ -602,7 +602,7 @@ void playJingle(String jingle) {
     buzzer.end(0);
     return;
   }
-  else if (jingle == "shutdown") {
+  else if (jingle == Jingle::SHUTDOWN) {
     buzzer.begin(0);
     buzzer.sound(NOTE_D8, 120);
     buzzer.sound(NOTE_C8, 120);

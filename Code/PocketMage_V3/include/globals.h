@@ -178,7 +178,10 @@ void updateBattState();
 String removeChar(String str, char character);
 void appendToFile(String path, String inText);
 void setCpuSpeed(int newFreq);
-void playJingle(String jingle);
+
+enum class Jingle { STARTUP, SHUTDOWN };
+void playJingle(Jingle jingle);
+
 void deepSleep(bool alternateScreenSaver = false);
 void loadState(bool changeState = true);
 int stringToInt(String str);

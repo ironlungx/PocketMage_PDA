@@ -9,8 +9,6 @@
 #include <Arduino.h>
 #include <Buzzer.h>
 
-enum class Jingle_ : uint8_t { Startup, Shutdown };
-
 struct Note {
   int key;
   int duration;

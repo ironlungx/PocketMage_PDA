@@ -8,26 +8,6 @@
 #include <pocketmage_bz.h>
 
 // ===================== main functions =====================
-/* void PocketmageBZ::playJingle(Jingle_ j) {
-  buzzer_.begin(0);
-  switch (j) {
-    case Jingle_::Startup:
-      buzzer_.sound(NOTE_A8,120);
-      buzzer_.sound(NOTE_B8,120);
-      buzzer_.sound(NOTE_C8,120);
-      buzzer_.sound(NOTE_D8,120);
-      break;
-    case Jingle_::Shutdown:
-      buzzer_.sound(NOTE_D8,120);
-      buzzer_.sound(NOTE_C8,120);
-      buzzer_.sound(NOTE_B8,120);
-      buzzer_.sound(NOTE_A8,120);
-      break;
-  }
-  buzzer_.sound(0,80);
-  buzzer_.end(0);
-} */
-
 void PocketmageBZ::playJingle(const Jingle& jingle) const {
   if (jingle.notes == nullptr || jingle.len == 0) {
     return;  // No valid notes to play

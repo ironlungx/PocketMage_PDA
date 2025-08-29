@@ -9,19 +9,43 @@
 #include <Arduino.h>
 #include <Buzzer.h>
 
-enum class Jingle : uint8_t { Startup, Shutdown };
+enum class Jingle_ : uint8_t { Startup, Shutdown };
+
+struct Note {
+  int key;
+  int duration;
+};
+
+struct Jingle {
+  const Note* notes;  // const because we don't want to modify the tune
+  size_t len;
+};
+
+namespace Jingles {
+constexpr static const Note startupNotes[] = {
+    {NOTE_A8, 120}, {NOTE_B8, 120}, {NOTE_C8, 120}, {NOTE_D8, 120}};
+
+constexpr static const Note shutdownNotes[] = {
+    {NOTE_D8, 120}, {NOTE_C8, 120}, {NOTE_B8, 120}, {NOTE_A8, 120}};
+
+const Jingle Startup = {startupNotes, sizeof(startupNotes) / sizeof(startupNotes[0])};
+const Jingle Shutdown = {shutdownNotes, sizeof(shutdownNotes) / sizeof(shutdownNotes[0])};
+
+};  // namespace jingle
 
 // ===================== BZ CLASS =====================
 class PocketmageBZ {
-public:
-  explicit PocketmageBZ(Buzzer &bz) : buzzer_(bz) {}
+ public:
+  explicit PocketmageBZ(Buzzer& bz) : buzzer_(bz) {}
 
   // Main methods
   void wireBZ(Buzzer* hw);
-  void playJingle(Jingle jingle);
+  // void playJingle(Jingle_ jingle);
 
-private:
-    Buzzer      &buzzer_;
+  void playJingle(const Jingle& jingle) const;
+
+ private:
+  Buzzer& buzzer_;
 };
 
 void wireBZ();

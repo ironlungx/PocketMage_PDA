@@ -51,13 +51,14 @@
 enum TXTState_NEW { TXT_, WIZ0, WIZ1, WIZ2, WIZ3, FONT };
 TXTState_NEW CurrentTXTState_NEW = TXT_;
 
-#define TYPE_INTERFACE_TIMEOUT 5000 //ms
+#define TYPE_INTERFACE_TIMEOUT 5000 // ms
+#define SCROLL_LINE_OFFSET     3    // lines
 
 // ------------------ Fonts ------------------
 #define SPECIAL_PADDING      20  // Padding for lists, code blocks, quote blocks
 #define SPACEWIDTH_SYMBOL    "n" // n is roughly the width of a space
-#define WORDWIDTH_BUFFER     0//12  // magic number to make word wrap work
-#define DISPLAY_WIDTH_BUFFER 5
+#define WORDWIDTH_BUFFER     0   // Add extra spacing to each word
+#define DISPLAY_WIDTH_BUFFER 0   // Add margin for text wrap calc
 #define HEADING_LINE_PADDING 8   // Padding between each line
 #define NORMAL_LINE_PADDING  2   
 
@@ -257,24 +258,29 @@ struct DocLine {
       lines.push_back(currentLine);
     }
   }
-  
-  // Display this DocLine
-  int displayLine(int startX, int startY) {
-    int cursorY = startY;
 
-    // Horizontal Rules just print a line
-    if (style == 'H') {
-      display.drawFastHLine(0, cursorY + 3, display.width(), GxEPD_BLACK);
-      display.drawFastHLine(0, cursorY + 4, display.width(), GxEPD_BLACK);
-      return 8;
+  int displayLine(int startX, int startY) {
+    ulong offsetLineScroll = 0;
+    if (lineScroll <= SCROLL_LINE_OFFSET) {
+      offsetLineScroll = 0;
     }
+    else offsetLineScroll = lineScroll - SCROLL_LINE_OFFSET;
+
+    int cursorY = startY;
 
     // Lists and Blockquotes are padded on the left
     if (style =='>' || style == '-' || style == 'L') startX += SPECIAL_PADDING;
     else if (style == 'C') startX += (SPECIAL_PADDING/2);
 
     for (auto &ln : lines) {
-      if (ln.index < lineScroll) continue; // skip lines above scroll
+      if (ln.index < offsetLineScroll) continue; // skip lines above scroll
+
+      // Horizontal Rules just print a line
+      if (style == 'H' && (cursorY + 4) > 0 && (cursorY + 3) < display.height()) {
+        display.drawFastHLine(0, cursorY + 3, display.width(), GxEPD_BLACK);
+        display.drawFastHLine(0, cursorY + 4, display.width(), GxEPD_BLACK);
+        return 8;
+      }
 
       int cursorX = startX;
 
@@ -335,9 +341,91 @@ struct DocLine {
     }
 
     // Headings get a horizontal line below them
-    else if (style =='1' || style == '2' || style == '3') {
+    else if ((style =='1' || style == '2' || style == '3') && (cursorY - 2) > 0 && (cursorY - 3) < display.height()) {
       display.drawFastHLine(0, cursorY - 2, display.width(), GxEPD_BLACK);
       display.drawFastHLine(0, cursorY - 3, display.width(), GxEPD_BLACK);
+    }
+
+    return cursorY - startY;
+  }
+
+  int displayLinePreview(int startX, int startY) {
+    // 74px on OLED horizontally
+    u8g2.setDrawColor(1);
+
+    int specialPadding = 8; //px
+
+    int cursorY = startY;
+
+    // Horizontal Rules just print a line
+    if (style == 'H' && cursorY > 0) {
+      u8g2.drawHLine(startX, cursorY, 80);
+      return 2;
+    }
+
+    // Lists and Blockquotes are padded on the left
+    if (style =='>' || style == '-' || style == 'L') startX += specialPadding;
+    else if (style == 'C') startX += (specialPadding/2);
+
+    for (auto &ln : lines) {
+      if (ln.index < lineScroll) continue; // skip lines above scroll
+
+      int cursorX = startX;
+
+      // 1. Find height for this line
+      int max_hpx = 0;
+      switch (style) {
+        case 'T': max_hpx = 2;    break;
+        case '1': max_hpx = 5;    break;
+        case '2': max_hpx = 4;    break;
+        case '3': max_hpx = 3;    break;
+        case 'C': max_hpx = 2;    break;
+        case '>': max_hpx = 2;    break;
+        case '-': max_hpx = 2;    break;
+        case 'L': max_hpx = 2;    break;
+        case 'H': max_hpx = 1;    break;
+        default:  max_hpx = 2;    break;
+      }
+
+      // 2. Draw all words at the same baseline
+      for (auto &w : ln.words) {
+        const GFXfont *font = pickFont(style, w.bold, w.italic);
+        display.setFont(font);
+
+        int16_t x1, y1;
+        uint16_t wpx, hpx;
+        display.getTextBounds(w.text.c_str(), cursorX, cursorY, &x1, &y1, &wpx, &hpx);
+
+        // Advance cursor (word width + space)
+        int16_t sx1, sy1;
+        uint16_t sw, sh;
+        display.getTextBounds(SPACEWIDTH_SYMBOL, cursorX, cursorY, &sx1, &sy1, &sw, &sh);
+
+        cursorX += wpx + sw;
+      }
+      uint16_t boxWidth = map(cursorX, 0, display.width(), 0, 76);
+
+      u8g2.drawBox(startX + 2, cursorY, boxWidth, max_hpx);
+
+
+      // Move down for next line
+      cursorY += max_hpx + 1;
+    }
+
+    // Blockquotes get a vertical line on the left
+    if (style =='>' && (cursorY-1) > 0) {
+      u8g2.drawVLine((specialPadding/2), startY, (cursorY-startY)-1);
+    }
+
+    // Code Blocks get a vertical line on each side
+    else if (style == 'C' && (cursorY-1) > 0) {
+      u8g2.drawVLine(SPECIAL_PADDING/4 - 3, startY, (cursorY-startY)-1);
+      u8g2.drawVLine(80 - (SPECIAL_PADDING/4) + 3, startY, (cursorY-startY)-1);
+    }
+
+    // Headings get a horizontal line below them
+    else if ((style =='1' || style == '2' || style == '3')  && (cursorY-2) > 0) {
+      u8g2.drawHLine(0, cursorY-2, 80);
     }
 
     return cursorY - startY;
@@ -391,6 +479,23 @@ int displayDocument(int startX = 0, int startY = 0) {
   return cursorY - startY;
 }
 
+int displayDocumentPreview(int startX = 0, int startY = 0) {
+  int cursorY = startY;
+
+  for (auto &doc : docLines) {
+    // Display this DocLine, offset by current cursorY
+    int heightUsed = doc.displayLinePreview(startX, cursorY);
+
+    // If the line is off the bottom of the screen, stop drawing
+    if (cursorY > u8g2.getDisplayHeight()) break;
+
+    cursorY += heightUsed;
+  }
+
+  // Return total height used
+  return cursorY - startY;
+}
+
 // Scroll
 void updateScroll() {
   static int lastTouchPos = -1;
@@ -416,28 +521,38 @@ void updateScroll() {
 
   if (touchPos != -1) {  // If a touch is detected
     Serial.println("Touch Detected");
+
     if (lastTouchPos != -1) {  // Compare with previous touch
       int touchDelta = abs(touchPos - lastTouchPos);
-      if (touchDelta <= 2) {  // Ignore large jumps (adjust threshold if needed)
+      if (touchDelta <= 2) {  // Ignore large jumps
         int maxScroll = getTotalDisplayLines();
+
         // REVERSED SCROLL DIRECTION:
         if (touchPos < lastTouchPos && lineScroll < maxScroll) {
           prev_lineScroll = lineScroll;
           lineScroll++;
-        } else if (touchPos > lastTouchPos && lineScroll > 0) {
+        } 
+        else if (touchPos > lastTouchPos && lineScroll > 0) {
           prev_lineScroll = lineScroll;
           lineScroll--;
         }
       }
     }
-    lastTouchPos = touchPos;  // Always update lastTouchPos
-    lastTouchTime = currentTime;  // Reset timeout timer
+
+    lastTouchPos  = touchPos;       // update tracked touch
+    lastTouch     = touchPos;       // <--- update UI flag
+    lastTouchTime = currentTime;    // reset timeout
   } 
   else if (lastTouchPos != -1 && (currentTime - lastTouchTime > TOUCH_TIMEOUT_MS)) {
-    // RESET LASTTOUCHPOS AFTER TIMEOUT
+    // Timeout: reset both
     lastTouchPos = -1;
-    // ONLY UPDATE IF SCROLL HAS CHANGED
-    if (prev_lineScroll != lineScroll) updateScreen = true;
+    lastTouch    = -1;              // <--- reset UI flag
+
+    if (prev_lineScroll != lineScroll) {
+      updateScreen = true;
+    }
+
+    prev_lineScroll = lineScroll;
   }
 }
 
@@ -520,6 +635,28 @@ void setFontOLED(bool bold, bool italic) {
   return;
 }
 
+LineObject* getLineObjectByIndex(ulong targetIndex) {
+  for (auto &doc : docLines) {
+    for (auto &line : doc.lines) {
+      if (line.index == targetIndex) {
+        return &line;
+      }
+    }
+  }
+  return nullptr; // not found
+}
+
+char getStyleFromScrollLine(ulong scrollLineIndex) {
+  for (auto &doc : docLines) {
+    for (auto &line : doc.lines) {
+      if (line.index == scrollLineIndex) {
+        return doc.style;  // <-- Return the DocLine style
+      }
+    }
+  }
+  return 'T'; // fallback if not found
+}
+
 // Returns the pixel width of a LineObject on the OLED (vector of wordObjects)
 int getLineWidthOLED(const LineObject& lineObj) {
   int lineWidth = 0;
@@ -539,51 +676,81 @@ int getLineWidthOLED(const LineObject& lineObj) {
   return lineWidth;
 }
 
-void oledEditorDisplay(LineObject& lineObj, wordObject& currentWord, int pixelsUsed, bool currentlyTyping) {
+void scrollPreview() {
   u8g2.clearBuffer();
 
-  //PROGRESS BAR
-  if (lineHasText(lineObj) == true && pixelsUsed > 0) {
-    uint8_t progress = map(pixelsUsed, 0, display.width() - DISPLAY_WIDTH_BUFFER, 0, display.width());
+  uint16_t xInit = u8g2.getDisplayWidth()/3;
 
-    u8g2.drawVLine(u8g2.getDisplayWidth(), 0, 3);
-    u8g2.drawVLine(0, 0, 3);
+  LineObject* scrollLinePtr = getLineObjectByIndex(lineScroll);
+  if (!scrollLinePtr) {
+    // Pointer invalid, nothing to display
+    return;
+  }
 
-    u8g2.drawHLine(0, 0, progress);
-    u8g2.drawHLine(0, 1, progress);
-    u8g2.drawHLine(0, 2, progress);
+  LineObject scrollLine = *getLineObjectByIndex(lineScroll);
 
-    // LINE END WARNING INDICATOR
-    if (progress > (u8g2.getDisplayWidth() * 0.8)) {
-      if ((millis() / 400) % 2 == 0) {  // ON for 200ms, OFF for 200ms
-        u8g2.drawVLine(u8g2.getDisplayWidth()-1, 8, 32-16);
-        u8g2.drawLine(u8g2.getDisplayWidth()-1,15,u8g2.getDisplayWidth()-4,12);
-        u8g2.drawLine(u8g2.getDisplayWidth()-1,15,u8g2.getDisplayWidth()-4,18);
+  if (&scrollLine) {
+    // Display Line
+
+    uint16_t xpos = xInit;
+
+    // Iterate through line and display from left to right
+    for (size_t i = 0; i < scrollLine.words.size(); ++i) {
+      const auto& w = scrollLine.words[i];
+      setFontOLED(w.bold, w.italic);
+      u8g2.drawStr(xpos, 20, w.text.c_str());
+
+      uint16_t wpx = u8g2.getStrWidth(w.text.c_str());
+
+      // Only add space if not the last word
+      if (i < scrollLine.words.size() - 1) {
+        uint8_t spaceWidth = u8g2.getStrWidth(" ");
+        xpos += wpx + spaceWidth;
+      } else {
+        xpos += wpx; // just the word width
       }
     }
-    // New line on space animation
-    if (pixelsUsed > display.width() - DISPLAY_WIDTH_BUFFER) {
-      // Sawtooth animation
-      uint period = 4000;
-      uint x = map(millis() % period, 0, period, 0, display.width());
 
-      // Draw negative arrow
-      u8g2.setDrawColor(0);
-      u8g2.drawHLine(x, 1, 5);
-      u8g2.drawVLine(x+4, 0, 3);
-      u8g2.drawPixel(x+5,1);
-      u8g2.setDrawColor(1);
+    // Draw line number and type
+    char style = getStyleFromScrollLine(lineScroll);
+    String lineTypeLabel = "";
+
+    switch (style) {
+      case 'T': lineTypeLabel = "BODY";        break;
+      case '1': lineTypeLabel = "HEAD 1";      break;
+      case '2': lineTypeLabel = "HEAD 2";      break;
+      case '3': lineTypeLabel = "HEAD 3";      break;
+      case 'C': lineTypeLabel = "CODE BLK";    break;
+      case '>': lineTypeLabel = "QUOTE BLK";   break;
+      case '-': lineTypeLabel = "UNORD LIST";  break;
+      case 'L': lineTypeLabel = "ORDER LIST";  break;
+      case 'H': lineTypeLabel = "HORIZ RULE";  break;
+      default:  lineTypeLabel = "?";           break;
     }
-  }
 
-  if (currentlyTyping) {
-    // Show toolbar
-    toolBar(currentWord);
+    String lineInfoStr = "L:" + String(lineScroll) + "-" + lineTypeLabel;
+
+    u8g2.setFont(u8g2_font_5x7_tf);
+    u8g2.drawStr(xInit, u8g2.getDisplayHeight(), lineInfoStr.c_str());
+
+    // Draw tooltip
+    u8g2.drawStr(u8g2.getDisplayWidth() - u8g2.getStrWidth("Tab:Edit Inline"), u8g2.getDisplayHeight(), "Tab: Edit Inline");
+
+    // Draw Seperator
+    u8g2.drawVLine(80, 0, u8g2.getDisplayHeight());
+
+    // Draw Preview
+    int totalUsed = displayDocumentPreview(0, 0);
+
   }
   else {
-    // Show infobar
-    OLED().infoBar();
+    return;
   }
+  u8g2.sendBuffer();
+}
+
+void oledEditorDisplay(LineObject& lineObj, wordObject& currentWord, int pixelsUsed, bool currentlyTyping) {
+  u8g2.clearBuffer();
 
   // Draw line text
   if (getLineWidthOLED(lineObj) < (u8g2.getDisplayWidth() - 5)) {
@@ -633,6 +800,55 @@ void oledEditorDisplay(LineObject& lineObj, wordObject& currentWord, int pixelsU
     }
 
     u8g2.drawVLine(u8g2.getDisplayWidth() - 6, 1, 22);
+  }
+
+  //PROGRESS BAR
+  if (lineHasText(lineObj) == true && pixelsUsed > 0) {
+    if (pixelsUsed > display.width() - DISPLAY_WIDTH_BUFFER) pixelsUsed = display.width() - DISPLAY_WIDTH_BUFFER;
+    //uint8_t progress = map(pixelsUsed, 0, display.width() - DISPLAY_WIDTH_BUFFER, 0, u8g2.getDisplayWidth());
+    uint8_t progress = map(min(pixelsUsed, display.width() - DISPLAY_WIDTH_BUFFER), 0, display.width() - DISPLAY_WIDTH_BUFFER, 0, u8g2.getDisplayWidth() - 1);
+
+    u8g2.drawVLine(u8g2.getDisplayWidth(), 0, 2);
+    u8g2.drawVLine(0, 0, 2);
+
+    u8g2.drawHLine(0, 0, progress);
+    u8g2.drawHLine(0, 1, progress);
+    //u8g2.drawHLine(0, 2, progress);
+
+    // LINE END WARNING INDICATOR
+    if (progress > (u8g2.getDisplayWidth() * 0.8)) {
+      if ((millis() / 400) % 2 == 0) {  // ON for 200ms, OFF for 200ms
+        u8g2.drawVLine(u8g2.getDisplayWidth()-1, 8, 32-16);
+        u8g2.drawLine(u8g2.getDisplayWidth()-1,15,u8g2.getDisplayWidth()-4,12);
+        u8g2.drawLine(u8g2.getDisplayWidth()-1,15,u8g2.getDisplayWidth()-4,18);
+      }
+    }
+    // New line on space animation
+    if (pixelsUsed >= display.width() - DISPLAY_WIDTH_BUFFER) {
+      // Sawtooth animation
+      uint period = 8000;
+      uint x1 = map(millis() % period, 0, period, 0, u8g2.getDisplayWidth());
+      uint x2 = map((millis() + period/4) % period, 0, period, 0, u8g2.getDisplayWidth());
+      uint x3 = map((millis() + period/2) % period, 0, period, 0, u8g2.getDisplayWidth());
+      uint x4 = map((millis() + (3*period)/4) % period, 0, period, 0, u8g2.getDisplayWidth());
+
+      // Draw scrolling box
+      u8g2.setDrawColor(0);
+      u8g2.drawBox(x1, 0, 10, 2);
+      u8g2.drawBox(x2, 0, 10, 2);
+      u8g2.drawBox(x3, 0, 10, 2);
+      u8g2.drawBox(x4, 0, 10, 2);
+      u8g2.setDrawColor(1);
+    }
+  }
+
+  if (currentlyTyping) {
+    // Show toolbar
+    toolBar(currentWord);
+  }
+  else {
+    // Show infobar
+    OLED().infoBar();
   }
 
   u8g2.sendBuffer();
@@ -708,7 +924,7 @@ void loadMarkdownFile(const String &path) {
     }
     else if (line == "---") {
       style = 'H';
-      content = ""; // horizontal line has no content
+      content = "---"; // horizontal line has no content
     }
     else if ((line.startsWith("'''")) || (line.startsWith("'") && line.endsWith("'"))) {
       if (line.startsWith("'''")) {
@@ -772,6 +988,8 @@ void editAppend(char inchar) {
   static ulong lastTypeMillis = 0;
   ulong currentMillis = millis();
 
+  bool moveView = false;
+
   // Lower baseline clock speed here?
 
   // Direct access to DocLine, LineObject, and wordObject
@@ -806,7 +1024,12 @@ void editAppend(char inchar) {
     HOME_INIT();
   }
   //TAB Recieved
-  else if (inchar == 9) {                                  
+  else if (inchar == 9) {
+    // If scrolling, edit inline
+    if (lastTouch != -1) {
+
+    }
+    
   }                                      
   //SHIFT Recieved
   else if (inchar == 17) {                                  
@@ -840,6 +1063,7 @@ void editAppend(char inchar) {
 
       // Mark screen for update
       updateScreen = true;
+      moveView = true;
     }
 
     // Start a new empty word for the next input
@@ -888,6 +1112,7 @@ void editAppend(char inchar) {
 
     // Mark screen for update
     updateScreen = true;
+    moveView = true;
   }
   //ESC / CLEAR Recieved
   else if (inchar == 20) {                                  
@@ -1021,13 +1246,24 @@ void editAppend(char inchar) {
     if (lastTouch == -1) {
       bool currentlyTyping = (millis() - lastTypeMillis < TYPE_INTERFACE_TIMEOUT);
 
+      // Flush KB IC if not in use
+      if (!currentlyTyping) keypad.flush();
+
       int lineWidth = getLineWidth(*lastLine, editingDocLine.style);
 
       oledEditorDisplay(*lastLine, *lastWord, lineWidth, currentlyTyping);
     }
     else {
       // Scrolling display function here
+      scrollPreview();
     }
+  }
+
+  // Center scroll on typed line if a line update has been registered
+  if (moveView) {
+    // Update scroll to currently edited line
+    if (editingDocLine.lines.empty()) lineScroll = 0;
+    else lineScroll = editingDocLine.lines.back().index;
   }
 
   if (SAVE_POWER) setCpuFrequencyMhz(80);
@@ -1153,9 +1389,9 @@ void TXT_INIT() {
 
   setFontStyle(serif);
 
-  CurrentAppState = TXT;
   lineScroll = 0;
   updateScreen = true;
+  CurrentAppState = TXT;
 }
 
 void einkHandler_TXT_NEW() {

@@ -9,6 +9,17 @@
 #include <Arduino.h>
 #include <Buzzer.h>
 
+/* ADDING NEW JINGLES
+
+
+   constexpr static const Note Jingles::myMelodyNotes[] = {
+      {NOTE_A8, 120}, {NOTE_B8, 120}, {NOTE_C8, 120}, {NOTE_D8, 120}
+   }; // This is constexpr so its compile time, not run time
+   const Jingles::myMelody = { myMelodyNotes, sizeof(myMelodyNotes) / sizeof(myMelodyNotes[0]);
+
+ 
+ * */
+
 struct Note {
   int key;
   int duration;

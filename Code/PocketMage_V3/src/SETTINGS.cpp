@@ -155,15 +155,27 @@ void settingCommandSelect(String command) {
     String debugPart = command.substring(6);
     debugPart.trim();
 
-    if (debugPart != "t" && debugPart != "f") {
+    if (debugPart == "error") {
+      VERBOSITY = ESP_LOG_ERROR;
+    } else if (debugPart == "warn") {
+      VERBOSITY = ESP_LOG_WARN;
+    } else if (debugPart == "info") {
+      VERBOSITY = ESP_LOG_INFO;
+    } else if (debugPart == "debug") {
+      VERBOSITY = ESP_LOG_DEBUG;
+    } else if (debugPart == "verbose") {
+      VERBOSITY = ESP_LOG_VERBOSE;
+    } else {
       OLED().oledWord("Invalid");
       delay(500);
       return;
     }
 
-    DEBUG_VERBOSE = (debugPart == "t");
+    esp_log_level_set("*", VERBOSITY);
+
+    // DEBUG_VERBOSE = (debugPart == "t");
     prefs.begin("PocketMage", false);
-    prefs.putBool("DEBUG_VERBOSE", DEBUG_VERBOSE);
+    prefs.putInt("VERBOSITY", (int)VERBOSITY);
     prefs.end();
     newState = true;
     OLED().oledWord("Settings Updated");
@@ -313,7 +325,7 @@ void einkHandler_settings() {
     // SAVE_POWER
     if (SAVE_POWER) display.drawBitmap(8, 121, _toggleON, 26, 11, GxEPD_BLACK);
     else display.drawBitmap(8, 121, _toggleOFF, 26, 11, GxEPD_BLACK);
-    // DEBUG_VERBOSE
+    // DEBUG_VERBOSE  TODO: Show {error, warning, info, verbose, debug} instead of on/off switch
     if (DEBUG_VERBOSE) display.drawBitmap(8, 144, _toggleON, 26, 11, GxEPD_BLACK);
     else display.drawBitmap(8, 144, _toggleOFF, 26, 11, GxEPD_BLACK);
     // HOME_ON_BOOT

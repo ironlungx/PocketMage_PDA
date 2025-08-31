@@ -2,6 +2,7 @@
 // @Ashtf 2025
 
 #include <pocketmage.h>
+#include "esp_log.h"
 
 static constexpr const char* TAG = "MAIN"; // TODO: Come up with a better tag
 
@@ -171,7 +172,7 @@ void setup() {
 
 void loop() {
   if (!noTimeout)  checkTimeout();
-  if (DEBUG_VERBOSE) printDebug();
+  printDebug();
 
   updateBattState();
   processKB();

@@ -89,7 +89,7 @@ extern sdmmc_card_t* card;   // SD card pointer
 // Persistent preferences
 extern Preferences prefs;        // NVS preferences
 extern int TIMEOUT;              // Auto sleep timeout (seconds)
-extern bool DEBUG_VERBOSE;       // Extra debug output
+extern esp_log_level_t VERBOSITY;       // Extra debug output
 extern bool SYSTEM_CLOCK;        // Show clock on screen
 extern bool SHOW_YEAR;           // Show year in clock
 extern bool SAVE_POWER;          // Enable power saving mode

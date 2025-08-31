@@ -61,7 +61,7 @@ sdmmc_card_t* card = nullptr;     // SD card pointer
 // Persistent preferences (NVS)
 Preferences prefs;
 int TIMEOUT;              // Auto sleep timeout (seconds)
-bool DEBUG_VERBOSE;       // Extra debug output
+esp_log_level_t VERBOSITY;  // Extra debug output
 bool SYSTEM_CLOCK;        // Show clock on screen
 bool SHOW_YEAR;           // Show year in clock
 bool SAVE_POWER;          // Enable power saving mode

@@ -864,7 +864,7 @@ void loadState(bool changeState) {
   prefs.begin("PocketMage", true);  // Read-Only
   // Misc
   TIMEOUT = prefs.getInt("TIMEOUT", 120);
-  DEBUG_VERBOSE = prefs.getBool("DEBUG_VERBOSE", true);
+  VERBOSITY = (esp_log_level_t)prefs.getInt("VERBOSITY", ESP_LOG_WARN); // NOTE: default verbosity is set to warning
   SYSTEM_CLOCK = prefs.getBool("SYSTEM_CLOCK", true);
   SHOW_YEAR = prefs.getBool("SHOW_YEAR", true);
   SAVE_POWER = prefs.getBool("SAVE_POWER", true);

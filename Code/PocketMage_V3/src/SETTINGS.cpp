@@ -326,17 +326,30 @@ void einkHandler_settings() {
     // SAVE_POWER
     if (SAVE_POWER) display.drawBitmap(8, 121, _toggleON, 26, 11, GxEPD_BLACK);
     else display.drawBitmap(8, 121, _toggleOFF, 26, 11, GxEPD_BLACK);
-    // DEBUG_VERBOSE  TODO: Show {error, warning, info, verbose, debug} instead of on/off switch
-    if (DEBUG_VERBOSE) display.drawBitmap(8, 144, _toggleON, 26, 11, GxEPD_BLACK);
-    else display.drawBitmap(8, 144, _toggleOFF, 26, 11, GxEPD_BLACK);
 
+    // TODO: take a look at this, not sure how appealing this looks on the display
+    display.setCursor(8, 155);
     switch (VERBOSITY) {
       case ESP_LOG_NONE:
+        display.print("NONE");
+        break;
       case ESP_LOG_ERROR:
+        display.print("ERROR");
+        break;
       case ESP_LOG_WARN:
+        display.print("WARNING");
+        break;
       case ESP_LOG_INFO:
+        display.print("INFO");
+        break;
       case ESP_LOG_DEBUG:
+        display.print("DEBUG");
+        break;
       case ESP_LOG_VERBOSE:
+        display.print("VERBOSE");
+        break;
+      default:
+        display.print("UNKNOWN");
         break;
     }
 

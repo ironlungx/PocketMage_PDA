@@ -1,4 +1,5 @@
 #include <pocketmage.h>
+#include "globals.h"
 
 enum SettingsState { settings0, settings1 };
 SettingsState CurrentSettingsState = settings0;
@@ -328,6 +329,17 @@ void einkHandler_settings() {
     // DEBUG_VERBOSE  TODO: Show {error, warning, info, verbose, debug} instead of on/off switch
     if (DEBUG_VERBOSE) display.drawBitmap(8, 144, _toggleON, 26, 11, GxEPD_BLACK);
     else display.drawBitmap(8, 144, _toggleOFF, 26, 11, GxEPD_BLACK);
+
+    switch (VERBOSITY) {
+      case ESP_LOG_NONE:
+      case ESP_LOG_ERROR:
+      case ESP_LOG_WARN:
+      case ESP_LOG_INFO:
+      case ESP_LOG_DEBUG:
+      case ESP_LOG_VERBOSE:
+        break;
+    }
+
     // HOME_ON_BOOT
     if (HOME_ON_BOOT) display.drawBitmap(8, 167, _toggleON, 26, 11, GxEPD_BLACK);
     else display.drawBitmap(8, 167, _toggleOFF, 26, 11, GxEPD_BLACK);
